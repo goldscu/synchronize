@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "React客户端应用",
+    "description": "这是一个简单的React应用，构建后将部署到Node.js服务器",
+    "techStack": {
+      "title": "技术栈",
+      "react": "React 19",
+      "typescript": "TypeScript",
+      "webpack": "Webpack"
+    },
+    "language": {
+      "switch": "切换语言",
+      "chinese": "中文",
+      "english": "English"
+    }
+  }
+}

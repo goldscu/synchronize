@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "React Client Application",
+    "description": "This is a simple React application that will be deployed to a Node.js server after building",
+    "techStack": {
+      "title": "Tech Stack",
+      "react": "React 19",
+      "typescript": "TypeScript",
+      "webpack": "Webpack"
+    },
+    "language": {
+      "switch": "Switch Language",
+      "chinese": "中文",
+      "english": "English"
+    }
+  }
+}

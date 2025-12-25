@@ -1,0 +1,99 @@
+# 依赖目录
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 构建输出
+dist/
+build/
+server/public/
+*.tsbuildinfo
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 日志文件
+logs
+*.log
+
+# 运行时数据
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率目录
+coverage/
+*.lcov
+
+# nyc测试覆盖率
+.nyc_output
+
+# IDE和编辑器文件
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+
+# 包管理器
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-debug.log*
+
+# 可选的npm缓存目录
+.npm
+
+# 可选的eslint缓存
+.eslintcache
+
+# 可选的REPL历史
+.node_repl_history
+
+# 输出的npm包
+*.tgz
+
+# Yarn完整性文件
+.yarn-integrity
+
+# parcel-bundler缓存
+.cache
+.parcel-cache
+
+# next.js构建输出
+.next
+
+# nuxt.js构建输出
+.nuxt
+
+# vuepress构建输出
+.vuepress/dist
+
+# Serverless目录
+.serverless
+
+# FuseBox缓存
+.fusebox/
+
+# DynamoDB本地文件
+.dynamodb/

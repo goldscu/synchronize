@@ -1,0 +1,49 @@
+/* 暗黑模式样式 */
+.App.dark {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+.App.dark .App-header {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+.App.dark .feature-box {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.App.dark .language-switcher button {
+  background-color: #3a3a3a;
+  color: #ffffff;
+}
+
+.App.dark .language-switcher button:hover {
+  background-color: #4a4a4a;
+}
+
+/* 普通模式样式 */
+.App.light {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.App.light .App-header {
+  background-color: #282c34;
+  color: white;
+}
+
+.App.light .feature-box {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+}
+
+.App.light .language-switcher button {
+  background-color: #61dafb;
+  color: #282c34;
+}
+
+.App.light .language-switcher button:hover {
+  background-color: #21a1f1;
+}
