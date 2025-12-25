@@ -1,15 +1,20 @@
 {
-  "app": {
-    "title": "React Client Application",
-    "description": "This is a simple React application that will be deployed to a Node.js server after building",
-    "techStack": {
-      "title": "Tech Stack",
-      "react": "React 19",
-      "typescript": "TypeScript",
-      "webpack": "Webpack"
+  "title": "Sync Assistant",
+  "room": {
+    "name": "Room",
+    "public": "Public Room",
+    "private": "Private Room",
+    "privateWithRoom": "Private Room: {roomName}",
+    "current": "Current Room"
+  },
+  "controls": {
+    "theme": {
+      "toggle": "Toggle Theme",
+      "light": "Light Mode",
+      "dark": "Dark Mode"
     },
     "language": {
-      "switch": "Switch Language",
+      "toggle": "Switch Language",
       "chinese": "中文",
       "english": "English"
     }

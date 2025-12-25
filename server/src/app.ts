@@ -1,8 +1,34 @@
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
+import { createServer } from 'http';
+import { Server as WebSocketServer } from 'ws';
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+// 创建 HTTP 服务器
+const server = createServer(app);
+
+// 创建 WebSocket 服务器
+const wss = new WebSocketServer({ server });
+
+// WebSocket 连接监听
+wss.on('connection', (ws) => {
+  console.log('WebSocket 客户端已连接');
+  
+  // 监听客户端消息
+  ws.on('message', (message) => {
+    console.log('收到消息:', message.toString());
+  });
+  
+  // 监听连接关闭
+  ws.on('close', () => {
+    console.log('WebSocket 客户端已断开连接');
+  });
+  
+  // 发送欢迎消息
+  ws.send('欢迎连接到 WebSocket 服务器');
+});
 
 // 静态文件服务
 app.use(express.static(path.join(__dirname, '../public')));
@@ -13,6 +39,6 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // 启动服务器
-app.listen(port, () => {
-  console.log(`服务器运行在 http://localhost:${port}`);
+server.listen(port, () => {
+  console.log(`HTTP 和 WebSocket 服务器运行在 http://localhost:${port}`);
 });

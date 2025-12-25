@@ -1,49 +1,41 @@
-/* 暗黑模式样式 */
-.App.dark {
-  background-color: #121212;
-  color: #ffffff;
+.app.dark {
+  background-color: #1a1a1a;
+  color: #f0f0f0;
 }
 
-.App.dark .App-header {
-  background-color: #1e1e1e;
-  color: #ffffff;
+.app.dark .main-header {
+  background-color: #2d2d2d;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.App.dark .feature-box {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.app.dark .app-title {
+  color: #f0f0f0;
 }
 
-.App.dark .language-switcher button {
-  background-color: #3a3a3a;
-  color: #ffffff;
+.app.dark .icon-button:hover {
+  background-color: rgba(240, 240, 240, 0.1);
 }
 
-.App.dark .language-switcher button:hover {
-  background-color: #4a4a4a;
+.app.dark .tooltip {
+  background-color: rgba(240, 240, 240, 0.9);
+  color: #1a1a1a;
 }
 
-/* 普通模式样式 */
-.App.light {
-  background-color: #ffffff;
-  color: #000000;
+.app.dark .tooltip::after {
+  border-color: transparent transparent rgba(240, 240, 240, 0.9) transparent;
 }
 
-.App.light .App-header {
-  background-color: #282c34;
-  color: white;
+/* 房间切换器暗色模式样式 */
+.app.dark .room-button {
+  border-color: #f0f0f0;
+  color: #f0f0f0;
 }
 
-.App.light .feature-box {
-  background-color: rgba(255, 255, 255, 0.1);
-  border: none;
+.app.dark .room-button:hover {
+  background-color: rgba(240, 240, 240, 0.1);
 }
 
-.App.light .language-switcher button {
-  background-color: #61dafb;
-  color: #282c34;
-}
-
-.App.light .language-switcher button:hover {
-  background-color: #21a1f1;
+.app.dark .room-button.active {
+  background-color: #f0f0f0;
+  color: #1a1a1a;
 }

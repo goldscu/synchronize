@@ -1,15 +1,20 @@
 {
-  "app": {
-    "title": "React客户端应用",
-    "description": "这是一个简单的React应用，构建后将部署到Node.js服务器",
-    "techStack": {
-      "title": "技术栈",
-      "react": "React 19",
-      "typescript": "TypeScript",
-      "webpack": "Webpack"
+  "title": "同步助手",
+  "room": {
+    "name": "房间",
+    "public": "公共房间",
+    "private": "私有房间",
+    "privateWithRoom": "私有房间：{roomName}",
+    "current": "当前房间"
+  },
+  "controls": {
+    "theme": {
+      "toggle": "切换主题",
+      "light": "浅色模式",
+      "dark": "深色模式"
     },
     "language": {
-      "switch": "切换语言",
+      "toggle": "切换语言",
       "chinese": "中文",
       "english": "English"
     }
