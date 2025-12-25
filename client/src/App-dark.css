@@ -25,6 +25,11 @@
   border-color: transparent transparent rgba(240, 240, 240, 0.9) transparent;
 }
 
+/* Toast暗色模式样式 */
+.app.dark .toast {
+  background-color: rgba(200, 35, 51, 0.9);
+}
+
 /* 房间切换器暗色模式样式 */
 .app.dark .room-button {
   border-color: #f0f0f0;
@@ -38,4 +43,149 @@
 .app.dark .room-button.active {
   background-color: #f0f0f0;
   color: #1a1a1a;
+}
+
+/* 主内容区域暗色模式样式 */
+.app.dark .right-panel {
+  border-left-color: #444;
+}
+
+.app.dark .user-section {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+.app.dark .username-text {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .username-input {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .edit-button, 
+.app.dark .save-button, 
+.app.dark .cancel-button {
+  background-color: #2d2d2d;
+  border-color: #f0f0f0;
+  color: #f0f0f0;
+}
+
+.app.dark .edit-button:hover, 
+.app.dark .save-button:hover, 
+.app.dark .cancel-button:hover {
+  background-color: #444;
+}
+
+.app.dark .send-text-section {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+.app.dark .text-input {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .send-file-section {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+.app.dark .file-input-label {
+  background-color: #1a1a1a;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .file-input-label:hover {
+  background-color: #333;
+}
+
+.app.dark .send-button {
+  background-color: #f0f0f0;
+  border-color: #f0f0f0;
+  color: #1a1a1a;
+}
+
+.app.dark .send-button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.app.dark .send-button:disabled {
+  background-color: #555;
+  border-color: #555;
+  color: #999;
+}
+
+/* 消息列表区域暗色模式样式 */
+.app.dark .message-header {
+  border-bottom-color: #444;
+}
+
+.app.dark .toggle-button {
+  background-color: #2d2d2d;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .toggle-button:hover {
+  background-color: #444;
+}
+
+.app.dark .toggle-button.active {
+  background-color: #f0f0f0;
+  color: #1a1a1a;
+  border-color: #f0f0f0;
+}
+
+.app.dark .text-message {
+  border-color: #444;
+}
+
+.app.dark .text-message .message-header {
+  background-color: #2d2d2d;
+  border-bottom-color: #444;
+}
+
+.app.dark .message-title {
+  color: #f0f0f0;
+}
+
+.app.dark .action-button {
+  background-color: #2d2d2d;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.app.dark .action-button:hover {
+  background-color: #444;
+}
+
+.app.dark .action-button.delete-button:hover {
+  background-color: rgba(200, 35, 51, 0.2);
+  border-color: rgba(200, 35, 51, 0.5);
+  color: rgba(255, 100, 100, 0.8);
+}
+
+.app.dark .message-content {
+  color: #e0e0e0;
+}
+
+.app.dark .file-message {
+  background-color: #2d2d2d;
+  border-color: #444;
+}
+
+.app.dark .file-name {
+  color: #f0f0f0;
+}
+
+.app.dark .message-footer {
+  color: #aaa;
 }

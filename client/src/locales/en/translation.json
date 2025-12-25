@@ -17,6 +17,38 @@
       "toggle": "Switch Language",
       "chinese": "中文",
       "english": "English"
+    },
+    "connection": {
+      "status": "Connection Status",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "connecting": "Connecting",
+      "reconnect": "Reconnect",
+      "connectionFailed": "Connection Failed",
+      "connectionError": "Connection Error: {error}",
+      "unexpectedClose": "Unexpected close (code: {code})"
     }
+  },
+  "user": {
+    "name": "Username",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "message": {
+    "sendText": "Send Text",
+    "sendFile": "Send File",
+    "textPlaceholder": "Please enter text to send...",
+    "send": "Send",
+    "selectFile": "Select File",
+    "messages": "Messages",
+    "textMessages": "Text Messages",
+    "fileMessages": "File Messages",
+    "noMoreMessages": "No more messages",
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "copy": "Copy",
+    "delete": "Delete",
+    "download": "Download"
   }
 }

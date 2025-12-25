@@ -17,6 +17,38 @@
       "toggle": "切换语言",
       "chinese": "中文",
       "english": "English"
+    },
+    "connection": {
+      "status": "连接状态",
+      "connected": "已连接",
+      "disconnected": "未连接",
+      "connecting": "连接中",
+      "reconnect": "重新连接",
+      "connectionFailed": "连接失败",
+      "connectionError": "连接错误：{error}",
+      "unexpectedClose": "连接意外关闭 (代码: {code})"
     }
+  },
+  "user": {
+    "name": "用户名",
+    "edit": "编辑",
+    "save": "保存",
+    "cancel": "取消"
+  },
+  "message": {
+    "sendText": "发送文本",
+    "sendFile": "发送文件",
+    "textPlaceholder": "请输入要发送的文本...",
+    "send": "发送",
+    "selectFile": "选择文件",
+    "messages": "消息",
+    "textMessages": "文字消息",
+    "fileMessages": "文件消息",
+    "noMoreMessages": "已经到底了",
+    "expand": "展开",
+    "collapse": "收起",
+    "copy": "复制",
+    "delete": "删除",
+    "download": "下载"
   }
 }

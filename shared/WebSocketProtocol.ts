@@ -6,33 +6,34 @@ export type RoomType = 'public' | 'private';
 
 export interface WebSocketMessage {
   type: string;
-  data: any;
+  username: string;
   timestamp?: number;
+  data: any;
 }
 
-export interface RoomMessage extends WebSocketMessage {
-  room: RoomType;
-}
-
-export interface UserJoinedMessage extends RoomMessage {
+export interface UserJoinedMessage extends WebSocketMessage {
   type: 'user_joined';
-  data: {
-    username: string;
-  };
+  data: {};
 }
 
-export interface UserExitMessage extends RoomMessage {
+export interface UserExitMessage extends WebSocketMessage {
   type: 'user_exit';
-  data: {
-    username: string;
-  };
+  data: {};
 }
 
-export interface ChatMessage extends RoomMessage {
-  type: 'chat_message';
+export interface RoomTextMessage extends WebSocketMessage {
+  type: 'room_text_message';
+  roomname: string;
   data: {
-    username: string;
     title: string;
     content: string;
+  };
+}
+
+export interface RoomFileMessage extends WebSocketMessage {
+  type: 'room_file_message';
+  roomname: string;
+  data: {
+    filename: string;
   };
 }

@@ -89,6 +89,44 @@
   border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
 }
 
+/* Toast提示样式 */
+.toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(220, 53, 69, 0.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  z-index: 1002;
+  max-width: 80%;
+  text-align: center;
+  animation: fadeIn 0.3s ease, fadeOut 0.3s ease 4.7s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 禁用按钮样式 */
+.icon-button.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.icon-button.disabled:hover {
+  background-color: transparent;
+  transform: none;
+}
+
 /* 房间切换器样式 */
 .room-switcher {
   display: flex;
@@ -117,4 +155,323 @@
 .room-button.active {
   background-color: #282c34;
   color: white;
+}
+
+/* 主内容区域样式 */
+.main-content {
+  display: flex;
+  height: calc(100vh - 60px);
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.left-panel {
+  flex: 1;
+  padding-right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-panel {
+  flex: 1;
+  padding-left: 20px;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 用户名区域样式 */
+.user-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.user-label {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.username-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username-text {
+  font-size: 16px;
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.username-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.username-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.edit-button, .save-button, .cancel-button {
+  padding: 8px 12px;
+  border: 1px solid #282c34;
+  border-radius: 4px;
+  background-color: white;
+  color: #282c34;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover, .save-button:hover, .cancel-button:hover {
+  background-color: rgba(40, 44, 52, 0.1);
+}
+
+/* 发送文本区域样式 */
+.send-text-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.send-text-section h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.text-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 16px;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+/* 发送文件区域样式 */
+.send-file-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.send-file-section h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.file-input-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.file-input-label {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.file-input-label:hover {
+  background-color: rgba(40, 44, 52, 0.05);
+}
+
+.send-button {
+  padding: 12px 20px;
+  border: 1px solid #282c34;
+  border-radius: 4px;
+  background-color: #282c34;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  background-color: #3a3f4a;
+}
+
+.send-button:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* 消息列表区域样式 */
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.message-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.message-type-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-button {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background-color: white;
+  color: #282c34;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.toggle-button:hover {
+  background-color: rgba(40, 44, 52, 0.05);
+}
+
+.toggle-button.active {
+  background-color: #282c34;
+  color: white;
+  border-color: #282c34;
+}
+
+.message-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 文字消息样式 */
+.text-message {
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.text-message .message-header {
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.message-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 4px 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: white;
+  color: #282c34;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background-color: rgba(40, 44, 52, 0.05);
+}
+
+.action-button.delete-button:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.5);
+  color: rgba(220, 53, 69, 0.8);
+}
+
+.message-content {
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+
+.message-content.collapsed {
+  max-height: 24px;
+}
+
+.message-content.expanded {
+  max-height: none;
+}
+
+/* 文件消息样式 */
+.file-message {
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-name {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.message-footer {
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  font-style: italic;
+  margin-top: auto;
 }
