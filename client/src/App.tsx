@@ -13,6 +13,8 @@ const App: React.FC = () => {
   const [currentRoom, setCurrentRoom] = useState<RoomType>('public'); // 默认进入公开房间
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [fileList, setFileList] = useState<Array<{name: string, size: number, modified: string}>>([]);
+  const [messages, setMessages] = useState<Array<{type: string, username: string, content?: string, fileName?: string, fileSize?: number, timestamp: string}>>([]);
   const wsRef = useRef<WebSocket | null>(null);
   const hasConnected = useRef(false); // 标记是否已经连接过
   const isUnmounting = useRef(false); // 标记组件是否正在卸载
@@ -70,7 +72,26 @@ const App: React.FC = () => {
         
         ws.onmessage = (event) => {
           console.log('收到服务器消息:', event.data);
-          // 这里可以处理服务器发送的消息
+          
+          try {
+            const message = JSON.parse(event.data);
+            
+            switch (message.type) {
+              case 'fileList':
+                setFileList(message.files);
+                break;
+              case 'text':
+                setMessages(prev => [...prev, message]);
+                break;
+              case 'file':
+                setMessages(prev => [...prev, message]);
+                break;
+              default:
+                console.log('未知消息类型:', message.type);
+            }
+          } catch (error) {
+            console.error('解析消息失败:', error);
+          }
         };
         
         ws.onerror = (error: Event) => {
@@ -267,16 +288,38 @@ const App: React.FC = () => {
   
   // 发送文本消息
   const sendTextMessage = () => {
-    if (textInput.trim()) {
-      console.log(`Send text message: ${textInput}`);
+    if (textInput.trim() && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const message = {
+        type: 'text',
+        username: username,
+        content: textInput.trim()
+      };
+      
+      wsRef.current.send(JSON.stringify(message));
       setTextInput('');
     }
   };
   
   // 发送文件
   const sendFile = () => {
-    if (selectedFile) {
-      console.log(`Send file: ${selectedFile.name}`);
+    if (selectedFile && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        if (event.target?.result && wsRef.current) {
+          const message = {
+            type: 'file',
+            username: username,
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+            fileData: event.target.result
+          };
+          
+          wsRef.current.send(JSON.stringify(message));
+        }
+      };
+      
+      reader.readAsDataURL(selectedFile);
       setSelectedFile(null);
     }
   };

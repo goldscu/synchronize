@@ -3,8 +3,27 @@ import path from 'path';
 import fs from 'fs';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
+import { initializeDatabase, saveMessage, getRoomMessages } from './database';
 
 const app: Express = express();
+
+// 检查并创建必要的目录
+function ensureDirectoriesExist() {
+  const directories = [
+    '../data/file',
+    '../data/sqlite'
+  ];
+  
+  directories.forEach(dir => {
+    const fullPath = path.join(__dirname, dir);
+    if (!fs.existsSync(fullPath)) {
+      fs.mkdirSync(fullPath, { recursive: true });
+      console.log(`已创建目录: ${fullPath}`);
+    } else {
+      console.log(`目录已存在: ${fullPath}`);
+    }
+  });
+}
 
 // 读取配置文件
 const configPath = path.join(__dirname, '../../shared/config.json');
@@ -15,8 +34,19 @@ const { host, port } = config.server;
 const server = createServer(app);
 
 // 设置服务器监听选项
-server.listen({ port, host }, () => {
+server.listen({ port, host }, async () => {
   console.log(`HTTP 和 WebSocket 服务器运行在 http://${host}:${port}`);
+  
+  // 确保目录存在
+  ensureDirectoriesExist();
+  
+  // 初始化数据库
+  try {
+    await initializeDatabase();
+    console.log('数据库初始化完成');
+  } catch (error) {
+    console.error('数据库初始化失败:', error);
+  }
 });
 
 // 创建 WebSocket 服务器
@@ -29,9 +59,13 @@ const wss = new WebSocketServer({
 wss.on('connection', (ws) => {
   console.log('WebSocket 客户端已连接');
   
+  // 发送文件列表给新连接的客户端
+  sendFileList(ws);
+  
   // 监听客户端消息
-  ws.on('message', (message) => {
+  ws.on('message', async (message) => {
     console.log('收到消息:', message.toString());
+    await handleMessage(ws, message.toString());
   });
   
   // 监听连接关闭
@@ -44,6 +78,80 @@ wss.on('connection', (ws) => {
     console.error('WebSocket 连接错误:', error);
   });
 });
+
+// 发送文件列表给客户端
+function sendFileList(ws: any) {
+  try {
+    const fileDir = path.join(__dirname, '../data/file');
+    const files = fs.readdirSync(fileDir);
+    const fileList = files.map(file => {
+      const filePath = path.join(fileDir, file);
+      const stats = fs.statSync(filePath);
+      return {
+        name: file,
+        size: stats.size,
+        modified: stats.mtime.toISOString()
+      };
+    });
+    
+    // 发送文件列表消息
+    ws.send(JSON.stringify({
+      type: 'fileList',
+      files: fileList
+    }));
+  } catch (error) {
+    console.error('读取文件列表失败:', error);
+  }
+}
+
+// 处理客户端消息
+async function handleMessage(ws: any, messageStr: string) {
+  try {
+    const message = JSON.parse(messageStr);
+    
+    switch (message.type) {
+      case 'text':
+        // 保存文本消息到数据库
+        await saveMessage(1, message.username, message.content); // 默认房间ID为1
+        
+        // 广播消息给所有客户端
+        broadcastMessage({
+          type: 'text',
+          username: message.username,
+          content: message.content,
+          timestamp: new Date().toISOString()
+        });
+        break;
+        
+      case 'file':
+        // 文件消息不保存到数据库，直接广播
+        broadcastMessage({
+          type: 'file',
+          username: message.username,
+          fileName: message.fileName,
+          fileSize: message.fileSize,
+          fileData: message.fileData,
+          timestamp: new Date().toISOString()
+        });
+        break;
+        
+      default:
+        console.log('未知消息类型:', message.type);
+    }
+  } catch (error) {
+    console.error('处理消息失败:', error);
+  }
+}
+
+// 广播消息给所有客户端
+function broadcastMessage(message: any) {
+  const messageStr = JSON.stringify(message);
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) { // WebSocket.OPEN = 1
+      client.send(messageStr);
+    }
+  });
+}
 
 // 静态文件服务
 app.use(express.static(path.join(__dirname, '../public')));

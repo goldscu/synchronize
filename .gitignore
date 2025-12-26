@@ -97,3 +97,6 @@ pnpm-lock.yaml
 
 # DynamoDB本地文件
 .dynamodb/
+
+# 数据目录
+data
