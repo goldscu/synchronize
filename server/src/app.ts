@@ -1,16 +1,29 @@
 import express, { Express, Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
 
 const app: Express = express();
-const port = process.env.PORT || 3000;
+
+// 读取配置文件
+const configPath = path.join(__dirname, '../../shared/config.json');
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+const { host, port } = config.server;
 
 // 创建 HTTP 服务器
 const server = createServer(app);
 
+// 设置服务器监听选项
+server.listen({ port, host }, () => {
+  console.log(`HTTP 和 WebSocket 服务器运行在 http://${host}:${port}`);
+});
+
 // 创建 WebSocket 服务器
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ 
+  server,
+  path: config.websocket?.path || '/' // 从配置文件读取WebSocket路径
+});
 
 // WebSocket 连接监听
 wss.on('connection', (ws) => {
@@ -40,7 +53,3 @@ app.get('/', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// 启动服务器
-server.listen(port, () => {
-  console.log(`HTTP 和 WebSocket 服务器运行在 http://localhost:${port}`);
-});

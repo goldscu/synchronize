@@ -28,68 +28,116 @@ const App: React.FC = () => {
   
   // 建立WebSocket连接
   const connectWebSocket = () => {
-    // 如果已经连接过，不再重复连接
-    if (hasConnected.current) return;
+    // 如果已经有WebSocket实例且状态为连接中或已连接，不再重复连接
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.CONNECTING || wsRef.current.readyState === WebSocket.OPEN)) {
+      console.log('WebSocket已在连接中或已连接，跳过重复连接');
+      return;
+    }
+    
+    // 如果有旧的连接，先关闭它
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
     
     setConnectionStatus('connecting');
-    const ws = new WebSocket('ws://localhost:3000');
-    wsRef.current = ws;
     
-    ws.onopen = () => {
-      console.log('WebSocket连接已建立');
-      setConnectionStatus('connected');
-      hasConnected.current = true;
-    };
-    
-    ws.onmessage = (event) => {
-      console.log('收到服务器消息:', event.data);
-      // 这里可以处理服务器发送的消息
-    };
-    
-    ws.onerror = (error: Event) => {
-      console.error('WebSocket连接错误:', error);
-      setConnectionStatus('disconnected');
-      // 只有在非正常关闭时才显示错误提示
-      if (ws.readyState !== WebSocket.CLOSING && ws.readyState !== WebSocket.CLOSED) {
-        // 尝试获取更详细的错误信息
-        let errorMessage = `事件类型: ${error.type}`;
-        if ('message' in error && error.message) {
-          errorMessage += `, 消息: ${error.message}`;
+    // 从配置文件读取WebSocket连接地址
+    fetch('/config.json')
+      .then(response => response.json())
+      .then(config => {
+        // 动态构建WebSocket连接地址
+        let websocketUrl;
+        if (config.client.useCurrentHost) {
+          // 获取当前页面的协议、主机和端口
+          const currentHost = window.location.host;
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          websocketUrl = `${protocol}//${currentHost}${config.websocket?.path || '/'}`;
+        } else {
+          // 使用配置中的完整URL（备用方案）
+          websocketUrl = config.client.websocketUrl;
         }
         
-        setToastMessage(t('controls.connection.connectionError', { error: errorMessage }));
-        setTimeout(() => setToastMessage(null), 5000);
-      }
-    };
-    
-    ws.onclose = (event) => {
-      console.log('WebSocket连接已关闭');
-      setConnectionStatus('disconnected');
-      // 只有在非正常关闭且组件未卸载时才显示错误提示
-      if (event.code !== 1000 && event.code !== 1001 && !isUnmounting.current) {
-        setToastMessage(t('controls.connection.connectionError', { error: t('controls.connection.unexpectedClose', { code: event.code }) }));
-        setTimeout(() => setToastMessage(null), 5000);
-      }
-    };
+        console.log('WebSocket连接地址:', websocketUrl);
+        const ws = new WebSocket(websocketUrl);
+        wsRef.current = ws;
+        
+        ws.onopen = () => {
+          console.log('WebSocket连接已建立');
+          setConnectionStatus('connected');
+          hasConnected.current = true;
+        };
+        
+        ws.onmessage = (event) => {
+          console.log('收到服务器消息:', event.data);
+          // 这里可以处理服务器发送的消息
+        };
+        
+        ws.onerror = (error: Event) => {
+          console.error('WebSocket连接错误:', error);
+          setConnectionStatus('disconnected');
+          // 只有在非正常关闭时才显示错误提示
+          if (ws.readyState !== WebSocket.CLOSING && ws.readyState !== WebSocket.CLOSED) {
+            // 尝试获取更详细的错误信息
+            let errorMessage = `事件类型: ${error.type}`;
+            if ('message' in error && error.message) {
+              errorMessage += `, 消息: ${error.message}`;
+            }
+            
+            setToastMessage(t('controls.connection.connectionError', { error: errorMessage }));
+            setTimeout(() => setToastMessage(null), 5000);
+          }
+        };
+        
+        ws.onclose = (event: CloseEvent) => {
+          console.log('WebSocket连接已关闭');
+          setConnectionStatus('disconnected');
+          // 只有在非正常关闭且组件未卸载时才显示错误提示
+          if (event.code !== 1000 && event.code !== 1001 && !isUnmounting.current) {
+            setToastMessage(t('controls.connection.connectionError', { error: t('controls.connection.unexpectedClose', { code: event.code }) }));
+            setTimeout(() => setToastMessage(null), 5000);
+          }
+        };
+      })
+      .catch(error => {
+        console.error('读取配置文件失败:', error);
+        setConnectionStatus('disconnected');
+      });
   };
   
   // 重新连接
   const reconnect = () => {
     if (wsRef.current) {
-      wsRef.current.close();
+      wsRef.current.close(1000, 'Manual reconnect');
+      wsRef.current = null;
     }
     hasConnected.current = false; // 重置连接标记
-    connectWebSocket();
+    setConnectionStatus('disconnected');
+    
+    // 延迟重新连接，避免过快重连
+    setTimeout(() => {
+      connectWebSocket();
+    }, 100);
   };
   
   // 只在组件挂载时连接一次
   useEffect(() => {
-    connectWebSocket();
+    // 延迟连接，确保组件完全挂载
+    const timer = setTimeout(() => {
+      connectWebSocket();
+    }, 100);
     
     return () => {
-      isUnmounting.current = true; // 标记组件正在卸载
+      // 清理定时器
+      clearTimeout(timer);
+      
+      // 标记组件正在卸载
+      isUnmounting.current = true;
+      
+      // 关闭WebSocket连接
       if (wsRef.current) {
-        wsRef.current.close();
+        wsRef.current.close(1000, 'Component unmounting');
+        wsRef.current = null;
       }
     };
   }, []);
