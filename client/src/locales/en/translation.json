@@ -34,7 +34,12 @@
     "edit": "Edit",
     "save": "Save",
     "cancel": "Cancel",
-    "editHint": "Click to edit username"
+    "editHint": "Click to edit username",
+    "onlineUsers": "Online Users",
+    "error": {
+      "usernameRequired": "Failed to get username, cannot continue",
+      "uuidRequired": "Failed to get UUID, cannot continue"
+    }
   },
   "message": {
     "sendText": "Send Text",

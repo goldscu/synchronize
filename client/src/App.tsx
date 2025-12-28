@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeContext';
 import i18n from 'i18next';
-import { Room } from '../../shared/WebSocketProtocol';
+import { Room, UserJoinedMessage, RoomFilesUpdateMessage, MESSAGE_TYPES } from '../../shared/WebSocketProtocol';
 import './App.css';
 import './App-dark.css';
 
@@ -15,6 +15,8 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [fileList, setFileList] = useState<Array<{name: string, size: number, modified: string}>>([]);
   const [messages, setMessages] = useState<Array<{type: string, username: string, content?: string, fileName?: string, fileSize?: number, timestamp: string}>>([]);
+  const [connectedUsers, setConnectedUsers] = useState<Array<{user_name: string, user_uuid: string}>>([]);
+  const [showUserTooltip, setShowUserTooltip] = useState<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const hasConnected = useRef(false); // 标记是否已经连接过
   const isUnmounting = useRef(false); // 标记组件是否正在卸载
@@ -27,6 +29,115 @@ const App: React.FC = () => {
     const htmlElement = document.documentElement;
     htmlElement.lang = i18n.language === 'zh' ? 'zh-CN' : 'en-US';
   }, [t, i18n.language]);
+  
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
+
+  const currentLanguage = i18n.language;
+  
+  // 用户名相关状态
+  const [username, setUsername] = useState<string>('');
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [userUuid, setUserUuid] = useState<string>('');
+  
+  // 消息相关状态
+  const [messageType, setMessageType] = useState<'text' | 'file'>('text');
+  const [textInput, setTextInput] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  
+  // 生成UUID函数
+  const generateUUID = () => {
+    // 简单的UUID v4生成器
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
+  // 初始化用户名和UUID
+  useEffect(() => {
+    console.log('开始初始化用户名和UUID...');
+    
+    // 初始化用户名
+    let savedUsername = localStorage.getItem('username');
+    if (!savedUsername) {
+      // 如果没有保存的用户名，使用默认值（电脑名称-浏览器名称）
+      const defaultUsername = `${getPlatformInfo()}-${getBrowserName()}`;
+      localStorage.setItem('username', defaultUsername);
+      setUsername(defaultUsername);
+      savedUsername = defaultUsername;
+      console.log('生成默认用户名:', defaultUsername);
+    } else {
+      setUsername(savedUsername);
+      console.log('从localStorage读取用户名:', savedUsername);
+    }
+
+    // 初始化用户UUID
+    let savedUuid = localStorage.getItem('userUuid');
+    if (!savedUuid) {
+      // 如果没有保存的UUID，生成新的并保存
+      const newUuid = generateUUID();
+      localStorage.setItem('userUuid', newUuid);
+      setUserUuid(newUuid);
+      savedUuid = newUuid;
+      console.log('生成新的用户UUID:', newUuid);
+    } else {
+      setUserUuid(savedUuid);
+      console.log('从localStorage读取UUID:', savedUuid);
+    }
+    
+    console.log('用户名和UUID初始化完成 - 用户名:', savedUsername, 'UUID:', savedUuid);
+  }, []);
+  
+  // 获取简单但准确的平台信息
+  const getPlatformInfo = () => {
+    // 尝试使用navigator.userAgentData（如果可用）
+    // @ts-ignore - userAgentData可能不在TypeScript类型定义中
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      // @ts-ignore
+      return navigator.userAgentData.platform;
+    }
+    
+    // 回退到navigator.userAgent解析
+    const userAgent = navigator.userAgent;
+    if (userAgent.indexOf('Mac') > -1) {
+      // 简单返回"Mac"，不区分Intel还是Apple Silicon
+      return 'Mac';
+    }
+    
+    // 最后回退到navigator.platform
+    return navigator.platform;
+  };
+  
+  // 获取浏览器名称
+  const getBrowserName = () => {
+    const userAgent = navigator.userAgent;
+    if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
+    if (userAgent.indexOf('Safari') > -1) return 'Safari';
+    if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
+    if (userAgent.indexOf('Edge') > -1) return 'Edge';
+    return 'Unknown';
+  };
+  
+  // 开始编辑用户名
+  const startEditUsername = () => {
+    setIsEditingUsername(true);
+  };
+  
+  // 更新用户名（实时保存）
+  const updateUsername = (newUsername: string) => {
+    setUsername(newUsername);
+    if (newUsername.trim()) {
+      localStorage.setItem('username', newUsername.trim());
+    }
+  };
+  
+  // 结束编辑用户名
+  const endEditUsername = () => {
+    setIsEditingUsername(false);
+  };
   
   // 建立WebSocket连接
   const connectWebSocket = () => {
@@ -66,8 +177,49 @@ const App: React.FC = () => {
         
         ws.onopen = () => {
           console.log('WebSocket连接已建立');
+          console.log('当前用户名状态:', username);
+          console.log('当前UUID状态:', userUuid);
           setConnectionStatus('connected');
           hasConnected.current = true;
+          
+          // 检查localStorage中是否有必要的用户信息
+          const currentUsername = localStorage.getItem('username');
+          const currentUserUuid = localStorage.getItem('userUuid');
+          
+          // 如果没有找到必要的用户信息，显示错误并停止执行
+          if (!currentUsername) {
+            setConnectionStatus('disconnected');
+            setToastMessage(t('user.error.usernameRequired'));
+            console.error('无法获取用户名，停止执行');
+            ws.close();
+            return;
+          }
+          
+          if (!currentUserUuid) {
+            setConnectionStatus('disconnected');
+            setToastMessage(t('user.error.uuidRequired'));
+            console.error('无法获取UUID，停止执行');
+            ws.close();
+            return;
+          }
+          
+          // 从URL参数中获取room_id
+          const urlParams = new URLSearchParams(window.location.search);
+          const roomIdFromUrl = urlParams.get('room_id');
+          const roomId = roomIdFromUrl ? parseInt(roomIdFromUrl) : 1; // 默认使用公开房间ID为1
+          
+          console.log('准备发送用户信息 - 用户名:', currentUsername, 'UUID:', currentUserUuid, '房间ID:', roomId);
+          
+          // 发送用户加入消息
+      const userJoinedMessage: UserJoinedMessage = {
+        type: MESSAGE_TYPES.USER_JOINED,
+        user_name: currentUsername,
+        user_uuid: currentUserUuid,
+        room_id: roomId
+      };
+          
+          ws.send(JSON.stringify(userJoinedMessage));
+          console.log('已发送用户加入消息:', userJoinedMessage);
         };
         
         ws.onmessage = (event) => {
@@ -77,14 +229,18 @@ const App: React.FC = () => {
             const message = JSON.parse(event.data);
             
             switch (message.type) {
-              case 'fileList':
-                setFileList(message.files);
+              case MESSAGE_TYPES.USERS_UPDATE:
+                setConnectedUsers(message.users);
                 break;
-              case 'text':
-                setMessages(prev => [...prev, message]);
+              case MESSAGE_TYPES.ROOM_TEXTS_UPDATE:
+                setMessages(message.room_texts);
                 break;
-              case 'file':
-                setMessages(prev => [...prev, message]);
+              case MESSAGE_TYPES.ROOM_FILES_UPDATE:
+                setFileList(message.files.map((file: RoomFilesUpdateMessage['files'][0]) => ({
+                  name: file.filename,
+                  size: file.filesize,
+                  modified: new Date(file.create_time).toISOString()
+                })));
                 break;
               default:
                 console.log('未知消息类型:', message.type);
@@ -143,15 +299,26 @@ const App: React.FC = () => {
   
   // 只在组件挂载时连接一次
   useEffect(() => {
-    // 延迟连接，确保组件完全挂载
-    const timer = setTimeout(() => {
-      connectWebSocket();
-    }, 1000);
+    // 延迟连接，确保用户名和UUID完全初始化
+    const connectAfterInit = () => {
+      // 检查localStorage中是否已有用户信息
+      const savedUsername = localStorage.getItem('username');
+      const savedUuid = localStorage.getItem('userUuid');
+      
+      if (savedUsername && savedUuid) {
+        console.log('用户信息已就绪，建立WebSocket连接');
+        connectWebSocket();
+      } else {
+        // 如果还没初始化完成，继续等待
+        console.log('等待用户信息初始化完成...');
+        setTimeout(connectAfterInit, 100);
+      }
+    };
+    
+    // 开始检查并连接
+    connectAfterInit();
     
     return () => {
-      // 清理定时器
-      clearTimeout(timer);
-      
       // 标记组件正在卸载
       isUnmounting.current = true;
       
@@ -162,119 +329,6 @@ const App: React.FC = () => {
       }
     };
   }, []);
-  
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-  };
-
-  const currentLanguage = i18n.language;
-  
-  // 用户名相关状态
-  const [username, setUsername] = useState<string>('');
-  const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [userUuid, setUserUuid] = useState<string>('');
-  
-  // 消息相关状态
-  const [messageType, setMessageType] = useState<'text' | 'file'>('text');
-  const [textInput, setTextInput] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
-  // 模拟消息数据
-  const [textMessages] = useState([
-    { id: 1, title: '第一条消息', content: '这是第一条消息的内容\n包含多行文本\n用于测试展开和收起功能', expanded: false },
-    { id: 2, title: '第二条消息', content: '这是第二条消息的内容，比较短', expanded: false },
-    { id: 3, title: '第三条消息', content: '这是第三条消息的内容\n同样包含多行文本\n用于测试展开和收起功能\n还有更多内容', expanded: false }
-  ]);
-  
-  const [fileMessages] = useState([
-    { id: 1, fileName: 'document.pdf' },
-    { id: 2, fileName: 'image.jpg' },
-    { id: 3, fileName: 'presentation.pptx' }
-  ]);
-  
-  // 生成UUID函数
-  const generateUUID = () => {
-    // 简单的UUID v4生成器
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  };
-
-  // 初始化用户名和UUID
-  useEffect(() => {
-    // 初始化用户名
-    const savedUsername = localStorage.getItem('username');
-    if (savedUsername) {
-      setUsername(savedUsername);
-    } else {
-      // 如果没有保存的用户名，使用默认值（电脑名称-浏览器名称）
-      const defaultUsername = `${getPlatformInfo()}-${getBrowserName()}`;
-      setUsername(defaultUsername);
-      localStorage.setItem('username', defaultUsername);
-    }
-
-    // 初始化用户UUID
-    const savedUuid = localStorage.getItem('userUuid');
-    if (savedUuid) {
-      setUserUuid(savedUuid);
-    } else {
-      // 如果没有保存的UUID，生成新的并保存
-      const newUuid = generateUUID();
-      setUserUuid(newUuid);
-      localStorage.setItem('userUuid', newUuid);
-      console.log('生成新的用户UUID:', newUuid);
-    }
-  }, []);
-  
-  // 获取简单但准确的平台信息
-  const getPlatformInfo = () => {
-    // 尝试使用navigator.userAgentData（如果可用）
-    // @ts-ignore - userAgentData可能不在TypeScript类型定义中
-    if (navigator.userAgentData && navigator.userAgentData.platform) {
-      // @ts-ignore
-      return navigator.userAgentData.platform;
-    }
-    
-    // 回退到navigator.userAgent解析
-    const userAgent = navigator.userAgent;
-    if (userAgent.indexOf('Mac') > -1) {
-      // 简单返回"Mac"，不区分Intel还是Apple Silicon
-      return 'Mac';
-    }
-    
-    // 最后回退到navigator.platform
-    return navigator.platform;
-  };
-  
-  // 获取浏览器名称
-  const getBrowserName = () => {
-    const userAgent = navigator.userAgent;
-    if (userAgent.indexOf('Chrome') > -1) return 'Chrome';
-    if (userAgent.indexOf('Safari') > -1) return 'Safari';
-    if (userAgent.indexOf('Firefox') > -1) return 'Firefox';
-    if (userAgent.indexOf('Edge') > -1) return 'Edge';
-    return 'Unknown';
-  };
-  
-  // 开始编辑用户名
-  const startEditUsername = () => {
-    setIsEditingUsername(true);
-  };
-  
-  // 更新用户名（实时保存）
-  const updateUsername = (newUsername: string) => {
-    setUsername(newUsername);
-    if (newUsername.trim()) {
-      localStorage.setItem('username', newUsername.trim());
-    }
-  };
-  
-  // 结束编辑用户名
-  const endEditUsername = () => {
-    setIsEditingUsername(false);
-  };
   
   // 切换消息类型
   const toggleMessageType = () => {
@@ -379,6 +433,27 @@ const App: React.FC = () => {
       <header className="main-header">
         <div className="header-left">
           <h1 className="app-title">{getRoomName()}</h1>
+          <div className="user-count-button">
+            <button
+              className="icon-button"
+              onMouseEnter={() => setShowUserTooltip(true)}
+              onMouseLeave={() => setShowUserTooltip(false)}
+            >
+              👥 {connectedUsers.length}
+            </button>
+            {showUserTooltip && connectedUsers.length > 0 && (
+              <div className="tooltip user-list-tooltip">
+                <div className="user-list-title">{t('user.onlineUsers')}:</div>
+                <div className="user-list">
+                  {connectedUsers.map((user, index) => (
+                    <div key={index} className="user-list-item">
+                      {user.user_name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         <div className="header-right">
           <div className="control-button">
@@ -516,73 +591,6 @@ const App: React.FC = () => {
               >
                 {t('message.fileMessages')}
               </button>
-            </div>
-          </div>
-          
-          <div className="message-list">
-            {messageType === 'text' ? (
-              <div className="text-messages">
-                {textMessages.map((message) => (
-                  <div key={message.id} className="text-message">
-                    <div className="message-header">
-                      <h4 className="message-title">{message.title}</h4>
-                      <div className="message-actions">
-                        <button
-                          className="action-button"
-                          onClick={() => toggleMessageExpanded(message.id)}
-                        >
-                          {message.expanded ? t('message.collapse') : t('message.expand')}
-                        </button>
-                        <button
-                          className="action-button"
-                          onClick={() => copyTextMessage(message.id)}
-                        >
-                          {t('message.copy')}
-                        </button>
-                        <button
-                          className="action-button delete-button"
-                          onClick={() => deleteMessage(message.id, 'text')}
-                        >
-                          {t('message.delete')}
-                        </button>
-                      </div>
-                    </div>
-                    <div className={`message-content ${message.expanded ? 'expanded' : 'collapsed'}`}>
-                      {message.content.split('\n').map((line, index) => (
-                        <div key={index}>{line}</div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="file-messages">
-                {fileMessages.map((message) => (
-                  <div key={message.id} className="file-message">
-                    <div className="file-info">
-                      <span className="file-name">{message.fileName}</span>
-                      <div className="file-actions">
-                        <button
-                          className="action-button"
-                          onClick={() => downloadFile(message.id)}
-                        >
-                          {t('message.download')}
-                        </button>
-                        <button
-                          className="action-button delete-button"
-                          onClick={() => deleteMessage(message.id, 'file')}
-                        >
-                          {t('message.delete')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <div className="message-footer">
-              {t('message.noMoreMessages')}
             </div>
           </div>
         </div>

@@ -479,3 +479,55 @@
   font-style: italic;
   margin-top: auto;
 }
+
+/* 用户数量按钮和列表样式 */
+.user-count-button {
+  margin-left: 15px;
+  position: relative;
+  display: inline-block;
+}
+
+.user-count-button .icon-button {
+  font-size: 16px;
+  font-weight: 500;
+  background-color: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+}
+
+.user-count-button .icon-button:hover {
+  background-color: rgba(76, 175, 80, 0.2);
+}
+
+.user-list-tooltip {
+  top: 50px;
+  left: -50px;
+  transform: translateX(0);
+  min-width: 150px;
+  max-width: 200px;
+  white-space: normal;
+  padding: 8px 12px;
+}
+
+.user-list-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.user-list {
+  max-height: 150px;
+  overflow-y: auto;
+  text-align: left;
+}
+
+.user-list-item {
+  padding: 4px 0;
+  font-size: 13px;
+  color: #ddd;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-list-item:last-child {
+  border-bottom: none;
+}

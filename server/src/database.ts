@@ -154,7 +154,7 @@ export function saveMessage(room: number, userName: string, userUuid: string, co
 }
 
 // 获取房间消息 - 返回RoomTextMessage格式的数据
-export function getRoomMessages(roomId: number, limit: number = 50): Promise<any[]> {
+export function getRoomMessages(roomId: number, limit: number = 100): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const db = getDatabase();
     

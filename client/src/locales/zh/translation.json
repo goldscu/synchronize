@@ -34,7 +34,12 @@
     "edit": "编辑",
     "save": "保存",
     "cancel": "取消",
-    "editHint": "点击编辑用户名"
+    "editHint": "点击编辑用户名",
+    "onlineUsers": "在线用户",
+    "error": {
+      "usernameRequired": "获取用户名失败，无法继续执行",
+      "uuidRequired": "获取UUID失败，无法继续执行"
+    }
   },
   "message": {
     "sendText": "发送文本",

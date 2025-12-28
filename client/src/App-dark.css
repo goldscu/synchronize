@@ -186,6 +186,34 @@
   color: rgba(255, 100, 100, 0.8);
 }
 
+/* 用户数量按钮和列表暗色模式样式 */
+.app.dark .user-count-button .icon-button {
+  background-color: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.app.dark .user-count-button .icon-button:hover {
+  background-color: rgba(76, 175, 80, 0.3);
+}
+
+.app.dark .user-list-tooltip {
+  background-color: rgba(240, 240, 240, 0.95);
+  color: #1a1a1a;
+}
+
+.app.dark .user-list-title {
+  color: #1a1a1a;
+}
+
+.app.dark .user-list-item {
+  color: #444;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.app.dark .user-list-item:last-child {
+  border-bottom: none;
+}
+
 .app.dark .message-content {
   color: #e0e0e0;
 }
