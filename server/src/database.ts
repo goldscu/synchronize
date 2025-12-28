@@ -1,9 +1,8 @@
 import * as sqlite3 from 'sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { DATA_PATHS } from './constants';
 
 // 数据库文件路径
-const DB_PATH = path.join(__dirname, '../data/sqlite/synchronize.db');
+const DB_PATH = DATA_PATHS.DATABASE_FILE;
 
 // 数据库实例
 let db: sqlite3.Database | null = null;
@@ -38,21 +37,21 @@ function createTables(): Promise<void> {
     const createRoomsTable = `
       CREATE TABLE IF NOT EXISTS rooms (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL UNIQUE,
         description TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
-    // 创建消息表
+    // 创建消息表 - 根据WebSocketProtocol.ts中的RoomTextMessage接口设计
     const createMessagesTable = `
       CREATE TABLE IF NOT EXISTS messages (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        room_id INTEGER NOT NULL,
-        username TEXT NOT NULL,
+        room INTEGER NOT NULL,
+        user_name TEXT NOT NULL,
+        user_uuid TEXT NOT NULL,
         content TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (room_id) REFERENCES rooms(id)
+        timestamp INTEGER NOT NULL
       )
     `;
 
@@ -133,13 +132,13 @@ export function getDatabase(): sqlite3.Database {
   return db;
 }
 
-// 保存文本消息到数据库
-export function saveMessage(roomId: number, username: string, content: string): Promise<number> {
+// 保存文本消息到数据库 - 支持RoomTextMessage接口
+export function saveMessage(room: number, userName: string, userUuid: string, content: string, timestamp: number): Promise<number> {
   return new Promise((resolve, reject) => {
     const db = getDatabase();
     db.run(
-      'INSERT INTO messages (room_id, username, content) VALUES (?, ?, ?)',
-      [roomId, username, content],
+      'INSERT INTO messages (room, user_name, user_uuid, content, timestamp) VALUES (?, ?, ?, ?, ?)',
+      [room, userName, userUuid, content, timestamp],
       function(this: sqlite3.RunResult, err: Error | null) {
         if (err) {
           console.error('保存消息失败:', err.message);
@@ -154,13 +153,13 @@ export function saveMessage(roomId: number, username: string, content: string): 
   });
 }
 
-// 获取房间消息
+// 获取房间消息 - 返回RoomTextMessage格式的数据
 export function getRoomMessages(roomId: number, limit: number = 50): Promise<any[]> {
   return new Promise((resolve, reject) => {
     const db = getDatabase();
     
     db.all(
-      'SELECT * FROM messages WHERE room_id = ? ORDER BY created_at DESC LIMIT ?',
+      'SELECT id, room, user_name, user_uuid, content, timestamp FROM messages WHERE room = ? ORDER BY timestamp DESC LIMIT ?',
       [roomId, limit],
       (err: Error | null, rows: any[]) => {
         if (err) {
@@ -169,8 +168,23 @@ export function getRoomMessages(roomId: number, limit: number = 50): Promise<any
           return;
         }
         
-        // 按时间升序返回（最新的在最后）
-        resolve(rows.reverse());
+        // 按时间升序返回（最新的在最后），并转换为WebSocket消息格式
+        const messages = rows.reverse().map(row => ({
+          id: row.id,
+          type: 'room_text_message',
+          user_name: row.user_name,
+          user_uuid: row.user_uuid,
+          room: {
+            id: row.room,
+            name: '',
+            description: '',
+            created_at: row.timestamp
+          },
+          content: row.content,
+          timestamp: row.timestamp
+        }));
+        
+        resolve(messages);
       }
     );
   });

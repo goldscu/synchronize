@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeContext';
 import i18n from 'i18next';
-import { RoomType } from '../../shared/WebSocketProtocol';
+import { Room } from '../../shared/WebSocketProtocol';
 import './App.css';
 import './App-dark.css';
 
@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const [showTooltip, setShowTooltip] = useState<string | null>(null);
-  const [currentRoom, setCurrentRoom] = useState<RoomType>('public'); // 默认进入公开房间
+  const [currentRoom, setCurrentRoom] = useState<Room>({ id: 0, name: '', description: t('room.public'), created_at: Date.now() }); // 默认进入公开房间
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [fileList, setFileList] = useState<Array<{name: string, size: number, modified: string}>>([]);
@@ -54,7 +54,7 @@ const App: React.FC = () => {
           // 获取当前页面的协议、主机和端口
           const currentHost = window.location.host;
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-          websocketUrl = `${protocol}//${currentHost}${config.websocket?.path || '/'}`;
+          websocketUrl = `${protocol}//${currentHost}${(config.websocket && config.websocket.path) || '/'}`;
         } else {
           // 使用配置中的完整URL（备用方案）
           websocketUrl = config.client.websocketUrl;
@@ -138,7 +138,7 @@ const App: React.FC = () => {
     // 延迟重新连接，避免过快重连
     setTimeout(() => {
       connectWebSocket();
-    }, 100);
+    }, 1000);
   };
   
   // 只在组件挂载时连接一次
@@ -146,7 +146,7 @@ const App: React.FC = () => {
     // 延迟连接，确保组件完全挂载
     const timer = setTimeout(() => {
       connectWebSocket();
-    }, 100);
+    }, 1000);
     
     return () => {
       // 清理定时器
@@ -172,7 +172,7 @@ const App: React.FC = () => {
   // 用户名相关状态
   const [username, setUsername] = useState<string>('');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
-  const [tempUsername, setTempUsername] = useState('');
+  const [userUuid, setUserUuid] = useState<string>('');
   
   // 消息相关状态
   const [messageType, setMessageType] = useState<'text' | 'file'>('text');
@@ -192,9 +192,19 @@ const App: React.FC = () => {
     { id: 3, fileName: 'presentation.pptx' }
   ]);
   
-  // 初始化用户名
+  // 生成UUID函数
+  const generateUUID = () => {
+    // 简单的UUID v4生成器
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
+  // 初始化用户名和UUID
   useEffect(() => {
-    // 尝试从本地存储获取用户名
+    // 初始化用户名
     const savedUsername = localStorage.getItem('username');
     if (savedUsername) {
       setUsername(savedUsername);
@@ -203,6 +213,18 @@ const App: React.FC = () => {
       const defaultUsername = `${getPlatformInfo()}-${getBrowserName()}`;
       setUsername(defaultUsername);
       localStorage.setItem('username', defaultUsername);
+    }
+
+    // 初始化用户UUID
+    const savedUuid = localStorage.getItem('userUuid');
+    if (savedUuid) {
+      setUserUuid(savedUuid);
+    } else {
+      // 如果没有保存的UUID，生成新的并保存
+      const newUuid = generateUUID();
+      setUserUuid(newUuid);
+      localStorage.setItem('userUuid', newUuid);
+      console.log('生成新的用户UUID:', newUuid);
     }
   }, []);
   
@@ -238,22 +260,19 @@ const App: React.FC = () => {
   
   // 开始编辑用户名
   const startEditUsername = () => {
-    setTempUsername(username);
     setIsEditingUsername(true);
   };
   
-  // 保存用户名
-  const saveUsername = () => {
-    if (tempUsername.trim()) {
-      setUsername(tempUsername.trim());
-      localStorage.setItem('username', tempUsername.trim());
+  // 更新用户名（实时保存）
+  const updateUsername = (newUsername: string) => {
+    setUsername(newUsername);
+    if (newUsername.trim()) {
+      localStorage.setItem('username', newUsername.trim());
     }
-    setIsEditingUsername(false);
   };
   
-  // 取消编辑用户名
-  const cancelEditUsername = () => {
-    setTempUsername('');
+  // 结束编辑用户名
+  const endEditUsername = () => {
     setIsEditingUsername(false);
   };
   
@@ -292,6 +311,7 @@ const App: React.FC = () => {
       const message = {
         type: 'text',
         username: username,
+        user_uuid: userUuid,
         content: textInput.trim()
       };
       
@@ -306,10 +326,11 @@ const App: React.FC = () => {
       const reader = new FileReader();
       
       reader.onload = (event) => {
-        if (event.target?.result && wsRef.current) {
+        if (event.target && event.target.result && wsRef.current) {
           const message = {
             type: 'file',
             username: username,
+            user_uuid: userUuid,
             fileName: selectedFile.name,
             fileSize: selectedFile.size,
             fileData: event.target.result
@@ -326,26 +347,24 @@ const App: React.FC = () => {
   
   // 处理文件选择
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files && event.target.files[0];
     if (file) {
       setSelectedFile(file);
     }
   };
 
   // 切换房间
-  const switchRoom = (roomType: RoomType) => {
-    setCurrentRoom(roomType);
+  const switchRoom = (room: Room) => {
+    setCurrentRoom(room);
   };
 
   // 获取当前房间名称
   const getRoomName = () => {
-    if (currentRoom === 'public') {
+    if (currentRoom.name === '') {
       return t('room.public');
-    } else if (currentRoom === 'private') {
-      // 暂时不显示房间名，等后续处理WebSocket数据时再添加
-      return t('room.private');
+    } else {
+      return t('room.privateWithRoom', { roomName: currentRoom.name });
     }
-    return '';
   };
 
   return (
@@ -415,26 +434,36 @@ const App: React.FC = () => {
       <div className="main-content">
         {/* 左侧区域 */}
         <div className="left-panel">
-          {/* 用户名区域 */}
+          {/* 用户名区域 - 用户名和编辑框在同一行 */}
           <div className="user-section">
-            <div className="user-label">{t('user.name')}:</div>
-            {isEditingUsername ? (
-              <div className="username-edit">
+            <div className="username-row">
+              <span className="user-label">{t('user.name')}:</span>
+              {isEditingUsername ? (
                 <input
                   type="text"
-                  value={tempUsername}
-                  onChange={(e) => setTempUsername(e.target.value)}
+                  value={username}
+                  onChange={(e) => updateUsername(e.target.value)}
+                  onBlur={endEditUsername}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      endEditUsername();
+                    } else if (e.key === 'Escape') {
+                      endEditUsername();
+                    }
+                  }}
                   className="username-input"
+                  autoFocus
                 />
-                <button onClick={saveUsername} className="save-button">{t('user.save')}</button>
-                <button onClick={cancelEditUsername} className="cancel-button">{t('user.cancel')}</button>
-              </div>
-            ) : (
-              <div className="username-display">
-                <span className="username-text">{username}</span>
-                <button onClick={startEditUsername} className="edit-button">{t('user.edit')}</button>
-              </div>
-            )}
+              ) : (
+                <span 
+                  className="username-text"
+                  onClick={startEditUsername}
+                  title={t('user.editHint')}
+                >
+                  {username}
+                </span>
+              )}
+            </div>
           </div>
           
           {/* 发送文本区域 */}

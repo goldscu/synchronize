@@ -183,24 +183,22 @@
 
 /* 用户名区域样式 */
 .user-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   padding: 15px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #f9f9f9;
 }
 
-.user-label {
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.username-display {
+.username-row {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.user-label {
+  font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap;
 }
 
 .username-text {
@@ -210,12 +208,12 @@
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   flex: 1;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.username-edit {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.username-text:hover {
+  background-color: #f0f0f0;
 }
 
 .username-input {
@@ -224,6 +222,12 @@
   border: 1px solid #e0e0e0;
   border-radius: 4px;
   font-size: 16px;
+  outline: none;
+}
+
+.username-input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 3px rgba(76, 175, 80, 0.3);
 }
 
 .edit-button, .save-button, .cancel-button {

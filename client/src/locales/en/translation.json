@@ -33,7 +33,8 @@
     "name": "Username",
     "edit": "Edit",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "editHint": "Click to edit username"
   },
   "message": {
     "sendText": "Send Text",

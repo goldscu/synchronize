@@ -4,23 +4,23 @@ import fs from 'fs';
 import { createServer } from 'http';
 import { Server as WebSocketServer } from 'ws';
 import { initializeDatabase, saveMessage, getRoomMessages } from './database';
+import { DATA_PATHS } from './constants';
 
 const app: Express = express();
 
 // 检查并创建必要的目录
 function ensureDirectoriesExist() {
   const directories = [
-    '../data/file',
-    '../data/sqlite'
+    DATA_PATHS.FILE_DIR,
+    DATA_PATHS.SQLITE_DIR
   ];
   
   directories.forEach(dir => {
-    const fullPath = path.join(__dirname, dir);
-    if (!fs.existsSync(fullPath)) {
-      fs.mkdirSync(fullPath, { recursive: true });
-      console.log(`已创建目录: ${fullPath}`);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`已创建目录: ${dir}`);
     } else {
-      console.log(`目录已存在: ${fullPath}`);
+      console.log(`目录已存在: ${dir}`);
     }
   });
 }
@@ -82,7 +82,7 @@ wss.on('connection', (ws) => {
 // 发送文件列表给客户端
 function sendFileList(ws: any) {
   try {
-    const fileDir = path.join(__dirname, '../data/file');
+    const fileDir = DATA_PATHS.FILE_DIR;
     const files = fs.readdirSync(fileDir);
     const fileList = files.map(file => {
       const filePath = path.join(fileDir, file);
@@ -111,15 +111,17 @@ async function handleMessage(ws: any, messageStr: string) {
     
     switch (message.type) {
       case 'text':
-        // 保存文本消息到数据库
-        await saveMessage(1, message.username, message.content); // 默认房间ID为1
+        // 保存文本消息到数据库 - 使用RoomTextMessage格式
+        const timestamp = Date.now();
+        await saveMessage(1, message.username, message.user_uuid || '', message.content, timestamp);
         
         // 广播消息给所有客户端
         broadcastMessage({
           type: 'text',
           username: message.username,
+          user_uuid: message.user_uuid || '',
           content: message.content,
-          timestamp: new Date().toISOString()
+          timestamp: timestamp
         });
         break;
         

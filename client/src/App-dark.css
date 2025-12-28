@@ -55,16 +55,29 @@
   border-color: #444;
 }
 
+.app.dark .username-row {
+  color: #f0f0f0;
+}
+
 .app.dark .username-text {
   background-color: #1a1a1a;
   border-color: #444;
   color: #f0f0f0;
 }
 
+.app.dark .username-text:hover {
+  background-color: #333;
+}
+
 .app.dark .username-input {
   background-color: #1a1a1a;
   border-color: #444;
   color: #f0f0f0;
+}
+
+.app.dark .username-input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 3px rgba(76, 175, 80, 0.5);
 }
 
 .app.dark .edit-button, 

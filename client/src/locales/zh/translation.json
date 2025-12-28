@@ -33,7 +33,8 @@
     "name": "用户名",
     "edit": "编辑",
     "save": "保存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "editHint": "点击编辑用户名"
   },
   "message": {
     "sendText": "发送文本",
