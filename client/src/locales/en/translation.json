@@ -18,6 +18,17 @@
       "chinese": "中文",
       "english": "English"
     },
+    "confirm": {
+      "title": "Confirm Delete",
+      "message": {
+        "file": "Are you sure you want to delete file \"{{fileName}}\"?",
+        "message": "Are you sure you want to delete this message?"
+      },
+      "buttons": {
+        "confirm": "Confirm",
+        "cancel": "Cancel"
+      }
+    },
     "connection": {
       "status": "Connection Status",
       "connected": "Connected",
@@ -47,6 +58,7 @@
     "textPlaceholder": "Please enter text to send...",
     "send": "Send",
     "selectFile": "Select File",
+    "filePrompt": "Click to select file or drag file here",
     "messages": "Messages",
     "textMessages": "Text Messages",
     "fileMessages": "File Messages",

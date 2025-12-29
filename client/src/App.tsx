@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeContext';
 import i18n from 'i18next';
-import { Room, UserJoinedMessage, RoomFilesUpdateMessage, MESSAGE_TYPES, RoomTextMessage, RoomTextDeleteMessage } from '../../shared/WebSocketProtocol';
+import { Room, UserJoinedMessage, RoomFilesUpdateMessage, MESSAGE_TYPES, RoomTextMessage, RoomTextDeleteMessage, RoomFileUploadMessage, RoomFileDeleteMessage } from '../../shared/WebSocketProtocol';
 import './App.css';
 import './App-dark.css';
 
@@ -26,6 +26,13 @@ const App: React.FC = () => {
   const [messages, setMessages] = useState<Array<{id?: number, user_name: string, content?: string, timestamp: string}>>([]);
   const [connectedUsers, setConnectedUsers] = useState<Array<{user_name: string, user_uuid: string}>>([]);
   const [showUserTooltip, setShowUserTooltip] = useState<boolean>(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<{show: boolean, type: 'file' | 'message', title: string, message: string, onConfirm: () => void}>({
+    show: false, 
+    type: 'file', 
+    title: '', 
+    message: '', 
+    onConfirm: () => {}
+  });
   const wsRef = useRef<WebSocket | null>(null);
   const hasConnected = useRef(false); // 标记是否已经连接过
   const isUnmounting = useRef(false); // 标记组件是否正在卸载
@@ -128,6 +135,16 @@ const App: React.FC = () => {
   const clearFiles = () => {
     filesRef.current = [];
     setFiles([]);
+  };
+
+  // 删除指定文件
+  const removeFile = (filename: string) => {
+    const fileIndex = filesRef.current.findIndex(file => file.name === filename);
+    if (fileIndex !== -1) {
+      filesRef.current.splice(fileIndex, 1);
+      setFiles([...filesRef.current]);
+      console.log(`从文件列表中移除文件: ${filename}`);
+    }
   };
   
   // 生成UUID函数
@@ -356,6 +373,20 @@ const App: React.FC = () => {
                 }));
                 setFilesList(newFiles);
                 break;
+              case MESSAGE_TYPES.ROOM_FILE_UPLOAD:
+                // 处理新上传的文件，将其添加到文件列表中
+                addFile({
+                  name: message.file.name,
+                  size: message.file.size,
+                  create_time: message.file.create_time
+                });
+                console.log('收到新文件上传通知:', message.file);
+                break;
+              case MESSAGE_TYPES.ROOM_FILE_DELETE:
+                // 处理文件删除消息，从文件列表中移除指定文件
+                removeFile(message.file_name);
+                console.log('收到文件删除通知:', message.file_name);
+                break;
               default:
                 console.log('未知消息类型:', message.type);
             }
@@ -548,6 +579,31 @@ const App: React.FC = () => {
       showCopyNotification(t('message.deleteError.missingId'));
       return;
     }
+
+    // 显示确认弹窗
+    setShowConfirmDialog({
+      show: true,
+      type: 'message',
+      title: t('controls.confirm.title'),
+      message: t('controls.confirm.message.message'),
+      onConfirm: () => executeMessageDelete(messageIndex)
+    });
+  };
+
+  // 执行消息删除操作
+  const executeMessageDelete = (messageIndex: number) => {
+    const messageToDelete = messagesRef.current[messageIndex];
+    if (!messageToDelete) {
+      console.error('Message not found');
+      showCopyNotification(t('message.deleteError.messageNotFound'));
+      return;
+    }
+    
+    if (!messageToDelete.id) {
+      console.error('Message ID missing');
+      showCopyNotification(t('message.deleteError.missingId'));
+      return;
+    }
     
     // 发送删除消息请求到服务器
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -605,7 +661,26 @@ const App: React.FC = () => {
   };
   
   // 删除文件
-  const deleteFile = async (fileIndex: number) => {
+  const deleteFile = (fileIndex: number) => {
+    const file = filesRef.current[fileIndex];
+    if (!file || !file.name) {
+      setToastMessage({message: t('file.deleteError', { error: '无效的文件信息' }), type: 'error'});
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+
+    // 显示确认弹窗
+    setShowConfirmDialog({
+      show: true,
+      type: 'file',
+      title: t('controls.confirm.title'),
+      message: t('controls.confirm.message.file', { fileName: file.name }),
+      onConfirm: () => executeFileDelete(fileIndex)
+    });
+  };
+
+  // 执行文件删除操作
+  const executeFileDelete = async (fileIndex: number) => {
     try {
       const file = filesRef.current[fileIndex];
       if (!file || !file.name) {
@@ -647,9 +722,8 @@ const App: React.FC = () => {
         throw new Error(errorData.error || `删除失败，状态码: ${response.status}`);
       }
       
-      // 从文件列表中移除文件
-      filesRef.current.splice(fileIndex, 1);
-      setFiles([...filesRef.current]);
+      // 不在这里立即移除文件，等待服务器广播删除消息后统一处理
+      // 这样可以确保所有客户端的状态同步
       
       // 显示成功提示
       setToastMessage({message: t('file.deleteSuccess', { fileName: file.name }), type: 'success'});
@@ -1009,7 +1083,7 @@ const App: React.FC = () => {
                 style={{ display: 'none' }}
               />
               <label htmlFor="file-input" className="file-input-label">
-                {selectedFile ? selectedFile.name : (isDragging ? t('file.dropFileHere') : t('message.selectFile'))}
+                {selectedFile ? selectedFile.name : t('message.filePrompt')}
               </label>
               <button onClick={sendFile} className="send-button" disabled={!selectedFile}>
                 {t('message.send')}
@@ -1139,6 +1213,33 @@ const App: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* 确认删除对话框 */}
+      {showConfirmDialog.show && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog">
+            <h3 className="confirm-dialog-title">{showConfirmDialog.title}</h3>
+            <p className="confirm-dialog-message">{showConfirmDialog.message}</p>
+            <div className="confirm-dialog-buttons">
+              <button 
+                className="confirm-button"
+                onClick={() => {
+                  showConfirmDialog.onConfirm();
+                  setShowConfirmDialog(prev => ({ ...prev, show: false }));
+                }}
+              >
+                {t('controls.confirm.buttons.confirm')}
+              </button>
+              <button 
+                className="cancel-button"
+                onClick={() => setShowConfirmDialog(prev => ({ ...prev, show: false }))}
+              >
+                {t('controls.confirm.buttons.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

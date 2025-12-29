@@ -252,3 +252,34 @@
 .app.dark .message-footer {
   color: #aaa;
 }
+
+/* 确认删除对话框暗色模式样式 */
+.app.dark .confirm-dialog {
+  background-color: #2d2d2d;
+}
+
+.app.dark .confirm-dialog-title {
+  color: #f0f0f0;
+}
+
+.app.dark .confirm-dialog-message {
+  color: #aaa;
+}
+
+.app.dark .confirm-button {
+  background-color: #dc3545;
+}
+
+.app.dark .confirm-button:hover {
+  background-color: #c82333;
+}
+
+.app.dark .cancel-button {
+  color: #aaa;
+  border-color: #666;
+}
+
+.app.dark .cancel-button:hover {
+  background-color: #666;
+  color: #f0f0f0;
+}

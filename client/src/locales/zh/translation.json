@@ -18,6 +18,17 @@
       "chinese": "中文",
       "english": "English"
     },
+    "confirm": {
+      "title": "确认删除",
+      "message": {
+        "file": "确定要删除文件 \"{{fileName}}\" 吗？",
+        "message": "确定要删除这条消息吗？"
+      },
+      "buttons": {
+        "confirm": "确认",
+        "cancel": "取消"
+      }
+    },
     "connection": {
       "status": "连接状态",
       "connected": "已连接",
@@ -47,6 +58,7 @@
     "textPlaceholder": "请输入要发送的文本...",
     "send": "发送",
     "selectFile": "选择文件",
+    "filePrompt": "点击选择文件或将文件拖到此处",
     "messages": "消息",
     "textMessages": "文字消息",
     "fileMessages": "文件消息",

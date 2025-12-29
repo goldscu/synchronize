@@ -7,7 +7,7 @@ import { Server as WebSocketServer, WebSocket } from 'ws';
 import { initializeDatabase, saveMessage, getRoomMessages, getRoomById, deleteMessage } from './database';
 import { DATA_PATHS } from './constants';
 // @ts-ignore
-import { UserJoinedMessage, RoomTextMessage, RoomTextDeleteMessage, UsersUpdateMessage, MESSAGE_TYPES } from '../../shared/WebSocketProtocol';
+import { UserJoinedMessage, RoomTextMessage, RoomTextDeleteMessage, UsersUpdateMessage, RoomFileUploadMessage, RoomFileDeleteMessage, File, MESSAGE_TYPES } from '../../shared/WebSocketProtocol';
 
 // 用户管理
 interface ConnectedUser {
@@ -336,8 +336,7 @@ function getRoomFiles(roomId: number) {
       };
     });
     
-    // 按创建时间降序排列，最新的文件在最前面
-    return fileList.sort((a, b) => a.create_time - b.create_time);
+    return fileList.sort((a, b) => b.create_time - a.create_time);
   } catch (error) {
     console.error('读取文件列表失败:', error);
     return [];
@@ -372,6 +371,34 @@ function broadcastMessage(message: any) {
       client.send(messageStr);
     }
   });
+}
+
+// 广播文件上传消息给所有客户端
+function broadcastFileUploadMessage(filename: string, size: number) {
+  const file: File = {
+    name: filename,
+    size: size,
+    create_time: Date.now()
+  };
+  
+  const roomFileUploadMessage: RoomFileUploadMessage = {
+    type: MESSAGE_TYPES.ROOM_FILE_UPLOAD,
+    file: file
+  };
+  
+  broadcastMessage(roomFileUploadMessage);
+  console.log(`文件上传消息已广播给所有客户端: ${filename}`);
+}
+
+// 广播文件删除消息给所有客户端
+function broadcastFileDeleteMessage(filename: string) {
+  const roomFileDeleteMessage: RoomFileDeleteMessage = {
+    type: MESSAGE_TYPES.ROOM_FILE_DELETE,
+    file_name: filename
+  };
+  
+  broadcastMessage(roomFileDeleteMessage);
+  console.log(`文件删除消息已广播给所有客户端: ${filename}`);
 }
 
 // 广播消息给指定房间的所有客户端
@@ -564,6 +591,11 @@ app.post('/api/upload/:filename', upload.single('file'), (req: Request, res: Res
               range: `bytes 0-${newSize - 1}/${total}`,
               complete: isComplete
             });
+
+            // 如果文件上传完成，广播给所有客户端
+            if (isComplete) {
+              broadcastFileUploadMessage(filename, newSize);
+            }
           });
           
           writeStream.on('error', (writeErr) => {
@@ -586,6 +618,9 @@ app.post('/api/upload/:filename', upload.single('file'), (req: Request, res: Res
         filename: filename,
         size: uploadedFile.size
       });
+
+      // 广播文件上传消息给所有客户端
+      broadcastFileUploadMessage(filename, uploadedFile.size);
     });
   }
 });
@@ -640,6 +675,9 @@ app.delete('/api/file/:filename', (req: Request, res: Response) => {
         message: '文件删除成功',
         filename: filename
       });
+
+      // 广播文件删除消息给所有客户端
+      broadcastFileDeleteMessage(filename);
     });
   });
 });

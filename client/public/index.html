@@ -2,8 +2,21 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title data-i18n="title"></title>
+    <style>
+        /* 确保页面始终以100%缩放显示 */
+        html {
+            zoom: reset;
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        body {
+            zoom: reset;
+            transform: scale(1);
+            transform-origin: top left;
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
