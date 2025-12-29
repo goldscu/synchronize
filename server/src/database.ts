@@ -1,5 +1,7 @@
 import * as sqlite3 from 'sqlite3';
 import { DATA_PATHS } from './constants';
+// @ts-ignore
+import { MESSAGE_TYPES, RoomTextMessage, RoomTextsUpdateMessage } from '../../shared/WebSocketProtocol';
 
 // 数据库文件路径
 const DB_PATH = DATA_PATHS.DATABASE_FILE;
@@ -51,7 +53,8 @@ function createTables(): Promise<void> {
         user_name TEXT NOT NULL,
         user_uuid TEXT NOT NULL,
         content TEXT NOT NULL,
-        timestamp INTEGER NOT NULL
+        timestamp INTEGER NOT NULL,
+        FOREIGN KEY (room) REFERENCES rooms (id) ON DELETE CASCADE
       )
     `;
 
@@ -154,12 +157,12 @@ export function saveMessage(room: number, userName: string, userUuid: string, co
 }
 
 // 获取房间消息 - 返回RoomTextMessage格式的数据
-export function getRoomMessages(roomId: number, limit: number = 100): Promise<any[]> {
+export function getRoomMessages(roomId: number, limit: number = 100): Promise<RoomTextsUpdateMessage> {
   return new Promise((resolve, reject) => {
     const db = getDatabase();
     
     db.all(
-      'SELECT id, room, user_name, user_uuid, content, timestamp FROM messages WHERE room = ? ORDER BY timestamp DESC LIMIT ?',
+      'SELECT id, room, user_name, user_uuid, content, timestamp FROM messages WHERE room = ? ORDER BY timestamp ASC LIMIT ?',
       [roomId, limit],
       (err: Error | null, rows: any[]) => {
         if (err) {
@@ -168,23 +171,19 @@ export function getRoomMessages(roomId: number, limit: number = 100): Promise<an
           return;
         }
         
-        // 按时间升序返回（最新的在最后），并转换为WebSocket消息格式
-        const messages = rows.reverse().map(row => ({
+        const messages = rows.map(row => ({
           id: row.id,
-          type: 'room_text_message',
           user_name: row.user_name,
           user_uuid: row.user_uuid,
-          room: {
-            id: row.room,
-            name: '',
-            description: '',
-            created_at: row.timestamp
-          },
+          room_id: row.room,
           content: row.content,
           timestamp: row.timestamp
         }));
         
-        resolve(messages);
+        resolve({
+          type: MESSAGE_TYPES.ROOM_TEXTS_UPDATE,
+          room_texts: messages
+        });
       }
     );
   });
@@ -225,6 +224,52 @@ export function getRoomIdByName(name: string): Promise<number> {
       }
       
       resolve(row.id);
+    });
+  });
+}
+
+// 根据房间ID获取房间信息
+export function getRoomById(roomId: number): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const db = getDatabase();
+    
+    db.get('SELECT * FROM rooms WHERE id = ?', [roomId], (err: Error | null, row: any) => {
+      if (err) {
+        console.error('获取房间信息失败:', err.message);
+        reject(err);
+        return;
+      }
+      
+      if (!row) {
+        reject(new Error(`房间ID ${roomId} 不存在`));
+        return;
+      }
+      
+      resolve(row);
+    });
+  });
+}
+
+// 删除消息
+export function deleteMessage(messageId: number): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const db = getDatabase();
+    
+    db.run('DELETE FROM messages WHERE id = ?', [messageId], function(this: sqlite3.RunResult, err: Error | null) {
+      if (err) {
+        console.error('删除消息失败:', err.message);
+        reject(err);
+        return;
+      }
+      
+      if (this.changes === 0) {
+        console.log(`消息ID ${messageId} 不存在或已被删除`);
+        resolve(false);
+        return;
+      }
+      
+      console.log(`消息ID ${messageId} 已删除`);
+      resolve(true);
     });
   });
 }

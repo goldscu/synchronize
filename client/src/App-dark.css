@@ -30,6 +30,14 @@
   background-color: rgba(200, 35, 51, 0.9);
 }
 
+.app.dark .toast.success {
+  background-color: rgba(25, 135, 50, 0.9);
+}
+
+.app.dark .toast.error {
+  background-color: rgba(200, 35, 51, 0.9);
+}
+
 /* 房间切换器暗色模式样式 */
 .app.dark .room-button {
   border-color: #f0f0f0;
@@ -110,6 +118,15 @@
   border-color: #444;
 }
 
+.app.dark .send-file-section.dragging {
+  border: 2px dashed #f0f0f0;
+  background-color: rgba(240, 240, 240, 0.05);
+}
+
+.app.dark .file-size-hint {
+  color: #aaa;
+}
+
 .app.dark .file-input-label {
   background-color: #1a1a1a;
   border-color: #444;
@@ -118,6 +135,11 @@
 
 .app.dark .file-input-label:hover {
   background-color: #333;
+}
+
+.app.dark .send-file-section.dragging .file-input-label {
+  background-color: rgba(240, 240, 240, 0.1);
+  border-color: #f0f0f0;
 }
 
 .app.dark .send-button {

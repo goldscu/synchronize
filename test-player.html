@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .video-container {
+            margin: 20px 0;
+        }
+        video {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 4px;
+            background-color: #000;
+        }
+        .file-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .file-info h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .file-info p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .test-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .test-button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .test-button:hover {
+            background-color: #45a049;
+        }
+        .test-button.secondary {
+            background-color: #2196F3;
+        }
+        .test-button.secondary:hover {
+            background-color: #0b7dda;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e7f3fe;
+            border-left: 4px solid #2196F3;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left-color: #f44336;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>HTTP文件下载与播放测试</h1>
+        
+        <div class="video-container">
+            <video id="videoPlayer" controls>
+                <source src="" type="video/mp4">
+                您的浏览器不支持视频播放。
+            </video>
+        </div>
+        
+        <div class="file-info">
+            <h3>文件信息</h3>
+            <p><strong>文件名:</strong> <input type="text" id="fileName" value="1.mp4" style="width: 200px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"></p>
+            <p><strong>下载地址:</strong> <input type="text" id="downloadUrl" value="http://localhost:3000/api/download/1.mp4" style="width: 400px; padding: 5px; border: 1px solid #ddd; border-radius: 4px;"></p>
+            <p><strong>服务器:</strong> localhost:3000</p>
+            <p><strong>支持功能:</strong> 断点续传、流式播放</p>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="test-button" onclick="testDirectDownload()">直接下载测试</button>
+            <button class="test-button secondary" onclick="testRangeRequest()">Range请求测试</button>
+            <button class="test-button secondary" onclick="testVideoSeek()">视频跳转测试</button>
+            <button class="test-button" onclick="showVideoInfo()">显示视频信息</button>
+            <button class="test-button" onclick="updateVideoSource()">更新视频源</button>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = 'status';
+            
+            if (type === 'error') {
+                statusDiv.classList.add('error');
+            } else if (type === 'success') {
+                statusDiv.classList.add('success');
+            }
+            
+            statusDiv.style.display = 'block';
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function testDirectDownload() {
+            const url = document.getElementById('downloadUrl').value;
+            const fileName = document.getElementById('fileName').value;
+            
+            showStatus('正在测试直接下载...', 'info');
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showStatus('直接下载测试已启动，请检查浏览器下载管理器', 'success');
+        }
+        
+        async function testRangeRequest() {
+            const url = document.getElementById('downloadUrl').value;
+            showStatus('正在测试Range请求...', 'info');
+            
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Range': 'bytes=0-1023' // 只请求前1KB数据
+                    }
+                });
+                
+                if (response.status === 206) {
+                    const contentRange = response.headers.get('Content-Range');
+                    const acceptRanges = response.headers.get('Accept-Ranges');
+                    const contentLength = response.headers.get('Content-Length');
+                    
+                    showStatus(`Range请求成功! 状态码: ${response.status}, Content-Range: ${contentRange}, Accept-Ranges: ${acceptRanges}, Content-Length: ${contentLength}`, 'success');
+                } else {
+                    showStatus(`Range请求失败，状态码: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`Range请求出错: ${error.message}`, 'error');
+            }
+        }
+        
+        function testVideoSeek() {
+            const video = document.getElementById('videoPlayer');
+            
+            if (video.readyState < 2) {
+                showStatus('视频尚未加载完成，请稍后再试', 'error');
+                return;
+            }
+            
+            // 跳转到视频的30%位置
+            const seekTime = video.duration * 0.3;
+            video.currentTime = seekTime;
+            
+            showStatus(`已跳转到视频的30%位置 (${Math.round(seekTime)}秒)`, 'success');
+        }
+        
+        function showVideoInfo() {
+            const video = document.getElementById('videoPlayer');
+            
+            if (video.readyState < 1) {
+                showStatus('视频元数据尚未加载完成', 'error');
+                return;
+            }
+            
+            const info = `
+                视频时长: ${Math.round(video.duration)}秒,
+                视频尺寸: ${video.videoWidth}x${video.videoHeight},
+                当前播放位置: ${Math.round(video.currentTime)}秒,
+                是否已暂停: ${video.paused}
+            `;
+            
+            showStatus(info, 'info');
+        }
+        
+        function updateVideoSource() {
+            const url = document.getElementById('downloadUrl').value;
+            const video = document.getElementById('videoPlayer');
+            const source = video.querySelector('source');
+            
+            // 停止当前视频
+            video.pause();
+            video.currentTime = 0;
+            
+            // 更新视频源
+            source.src = url;
+            video.load();
+            
+            showStatus('视频源已更新，正在加载...', 'info');
+        }
+        
+        // 监听视频事件，显示状态
+        const video = document.getElementById('videoPlayer');
+        
+        // 页面加载时自动设置视频源
+        window.addEventListener('DOMContentLoaded', () => {
+            updateVideoSource();
+        });
+        
+        video.addEventListener('loadstart', () => {
+            console.log('视频开始加载');
+        });
+        
+        video.addEventListener('loadedmetadata', () => {
+            console.log('视频元数据已加载');
+            showVideoInfo();
+        });
+        
+        video.addEventListener('canplay', () => {
+            console.log('视频可以开始播放');
+        });
+        
+        video.addEventListener('seeking', () => {
+            console.log('视频跳转中...');
+        });
+        
+        video.addEventListener('seeked', () => {
+            console.log('视频跳转完成');
+            showStatus('视频跳转成功，断点续传功能正常', 'success');
+        });
+        
+        video.addEventListener('error', (e) => {
+            console.error('视频加载错误:', e);
+            showStatus('视频加载失败，请检查服务器是否运行正常', 'error');
+        });
+    </script>
+</body>
+</html>

@@ -50,11 +50,74 @@
     "messages": "Messages",
     "textMessages": "Text Messages",
     "fileMessages": "File Messages",
+    "text": "Text",
+    "file": "File",
+    "tooltip": {
+      "textMessages": "Text messages in current room",
+      "fileMessages": "Files in public room"
+    },
+    "action": {
+      "copy": "Copy",
+      "delete": "Delete",
+      "download": "Download"
+    },
+    "fileInfo": {
+      "name": "Name",
+      "size": "Size",
+      "createTime": "Create Time"
+    },
+    "messageInfo": {
+      "sender": "Sender",
+      "time": "Time",
+      "content": "Content"
+    },
     "noMoreMessages": "No more messages",
     "expand": "Expand",
+    "noMessages": "No messages",
+    "noFiles": "No files",
     "collapse": "Collapse",
-    "copy": "Copy",
-    "delete": "Delete",
-    "download": "Download"
+    "copySuccess": "Copy successful",
+    "copyFailed": "Copy failed",
+    "deleteFailed": "Delete failed",
+    "deleteSuccess": "Delete successful",
+    "deleteError": {
+      "messageNotFound": "Message not found",
+      "missingId": "Message ID missing",
+      "connectionError": "Connection error, please check your network",
+      "permissionDenied": "No permission to delete",
+      "serverError": "Server error, please try again later"
+    },
+    "error": {
+      "empty": "Message content cannot be empty",
+      "noConnection": "WebSocket connection not established",
+      "connecting": "Connecting, please try again later",
+      "closing": "Connection is closing, please try again later",
+      "closed": "Connection closed, please reconnect",
+      "unknown": "Unknown connection status",
+      "notOpen": "Connection not ready ({status})"
+    }
+  },
+  "file": {
+    "error": {
+      "noFile": "Please select a file to send first",
+      "fileTooLarge": "File size exceeds limit ({{maxSize}})",
+      "uploadFailed": "Upload failed, status code: {{status}}",
+      "uploadError": "Upload failed: {{error}}",
+      "configError": "Failed to get server configuration"
+    },
+    "uploadSuccess": "File uploaded successfully",
+    "downloadSuccess": "File downloaded successfully: {{fileName}}",
+    "downloadError": "File download failed: {{fileName}}, Error: {{error}}",
+    "deleteSuccess": "File deleted successfully: {{fileName}}",
+    "deleteError": "File deletion failed: {{error}}",
+    "maxFileSize": "Maximum file size: {{maxSize}}",
+    "dropFileHere": "Drop file here",
+    "deleteError": {
+      "fileNotFound": "File not found",
+      "missingId": "File ID missing",
+      "connectionError": "Connection error, please check your network",
+      "permissionDenied": "No permission to delete",
+      "serverError": "Server error, please try again later"
+    }
   }
 }

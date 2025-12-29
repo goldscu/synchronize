@@ -11,12 +11,18 @@ export const MESSAGE_TYPES = {
   USERS_UPDATE: 'users_update',
   USER_EXIT: 'user_exit',
   
+  // 房间相关消息
+  ROOM_UPDATE: 'room_update',
+  
   // 房间文本消息
   ROOM_TEXT_MESSAGE: 'room_text_message',
   ROOM_TEXTS_UPDATE: 'room_texts_update',
+  ROOM_TEXT_MESSAGE_DELETE: 'room_text_message_delete',
   
   // 房间文件消息
-  ROOM_FILES_UPDATE: 'room_files_update'
+  ROOM_FILES_UPDATE: 'room_files_update',
+  ROOM_FILE_DELETE: 'room_file_delete',
+  ROOM_FILE_UPLOAD: 'room_file_upload',
 } as const;
 
 // 消息类型联合类型
@@ -31,14 +37,6 @@ export interface Room {
   name: string
   description?: string
   created_at: number
-}
-
-export interface WebSocketMessage {
-  type: string
-  user_name: string
-  user_uuid: string
-  room?: Room
-  timestamp?: number
 }
 
 export interface UserJoinedMessage {
@@ -56,25 +54,46 @@ export interface UsersUpdateMessage {
   }[]
 }
 
-export interface UserExitMessage extends WebSocketMessage {
-  type: typeof MESSAGE_TYPES.USER_EXIT
+export interface RoomText {
+  id?: number
+  user_name: string
+  user_uuid: string
+  room_id: number
+  timestamp?: number
+  content: string
 }
 
-export interface RoomTextMessage extends WebSocketMessage {
+export interface RoomTextMessage {
   type: typeof MESSAGE_TYPES.ROOM_TEXT_MESSAGE
-  content: string
+  room_text: RoomText
 }
 
 export interface RoomTextsUpdateMessage {
   type: typeof MESSAGE_TYPES.ROOM_TEXTS_UPDATE
-  room_texts: [RoomTextMessage]
+  room_texts: RoomText[]
 }
 
+export interface RoomTextDeleteMessage {
+  type: typeof MESSAGE_TYPES.ROOM_TEXT_MESSAGE_DELETE
+  id: number
+}
+
+export interface File {
+  name: string
+  size: number
+  create_time: number
+}
 export interface RoomFilesUpdateMessage {
   type: typeof MESSAGE_TYPES.ROOM_FILES_UPDATE
-  files: [{
-    filename: string
-    filesize: number
-    create_time: number
-  }]
+  files: File[]
+}
+
+export interface RoomFileDeleteMessage {
+  type: typeof MESSAGE_TYPES.ROOM_FILE_DELETE
+  file_name: string
+}
+
+export interface RoomFileUploadMessage {
+  type: typeof MESSAGE_TYPES.ROOM_FILE_UPLOAD
+  file: File
 }

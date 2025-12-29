@@ -15,10 +15,12 @@
   "type": "commonjs",
   "dependencies": {
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
     "@types/node": "^25.0.3",
     "@types/sqlite3": "^3.1.11",
     "@types/ws": "^8.18.1",
     "express": "^5.2.1",
+    "multer": "^2.0.2",
     "nodemon": "^3.1.11",
     "sqlite3": "^5.1.7",
     "ts-node": "^10.9.2",

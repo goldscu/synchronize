@@ -19,6 +19,7 @@ i18n
         translation: enTranslation
       }
     },
+    lng: localStorage.getItem('language') || 'zh', // 优先使用本地存储的语言设置
     fallbackLng: 'zh', // 默认语言
     debug: process.env.NODE_ENV === 'development',
     
