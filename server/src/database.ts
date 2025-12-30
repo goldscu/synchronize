@@ -274,6 +274,23 @@ export function deleteMessage(messageId: number): Promise<boolean> {
   });
 }
 
+// 检查房间名是否存在
+export function checkRoomNameExists(name: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    const db = getDatabase();
+    
+    db.get('SELECT id FROM rooms WHERE name = ?', [name], (err: Error | null, row: any) => {
+      if (err) {
+        console.error('检查房间名失败:', err.message);
+        reject(err);
+        return;
+      }
+      
+      resolve(!!row);
+    });
+  });
+}
+
 // 创建新房间
 export function createRoom(name: string, description?: string): Promise<number> {
   return new Promise((resolve, reject) => {

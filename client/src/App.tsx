@@ -33,6 +33,13 @@ const App: React.FC = () => {
     message: '', 
     onConfirm: () => {}
   });
+  
+  // 创建房间相关状态
+  const [showCreateRoomDialog, setShowCreateRoomDialog] = useState<boolean>(false);
+  const [roomNameInput, setRoomNameInput] = useState<string>('');
+  const [showRoomLinkDialog, setShowRoomLinkDialog] = useState<boolean>(false);
+  const [roomLink, setRoomLink] = useState<string>('');
+  const [roomKey, setRoomKey] = useState<string>('');
   const wsRef = useRef<WebSocket | null>(null);
   const hasConnected = useRef(false); // 标记是否已经连接过
   const isUnmounting = useRef(false); // 标记组件是否正在卸载
@@ -565,6 +572,107 @@ const App: React.FC = () => {
     }, 3000);
   };
   
+  // 生成加密密钥
+  const generateEncryptionKey = (): string => {
+    // 生成64个十六进制字符的密钥
+    return Array.from({ length: 32 }, () => 
+      Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
+    ).join('');
+  };
+  
+  // 创建房间
+  const handleCreateRoom = async () => {
+    if (!roomNameInput.trim()) {
+      setToastMessage({ message: t('room.create.error.emptyName'), type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/room/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: roomNameInput })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        setToastMessage({ message: errorData.error || t('room.create.error.unknown'), type: 'error' });
+        setTimeout(() => setToastMessage(null), 3000);
+        return;
+      }
+      
+      const room = await response.json();
+      const key = generateEncryptionKey();
+      
+      // 生成房间链接
+      const baseUrl = window.location.origin;
+      const newUrl = `${baseUrl}/#/?room_id=${room.id}&key=${key}`;
+      
+      // 保存链接和密钥
+      setRoomLink(newUrl);
+      setRoomKey(key);
+      
+      // 关闭创建房间对话框，打开链接对话框
+      setShowCreateRoomDialog(false);
+      setShowRoomLinkDialog(true);
+      
+      // 重置房间名输入
+      setRoomNameInput('');
+    } catch (error) {
+      console.error('创建房间失败:', error);
+      setToastMessage({ message: t('room.create.error.network'), type: 'error' });
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
+  
+  // 复制房间链接
+  const copyRoomLink = () => {
+    navigator.clipboard.writeText(roomLink)
+      .then(() => {
+        showCopyNotification(t('room.link.copied'));
+      })
+      .catch(err => {
+        console.error('复制链接失败:', err);
+        setToastMessage({ message: t('room.link.copyError'), type: 'error' });
+        setTimeout(() => setToastMessage(null), 3000);
+      });
+  };
+  
+  // 收藏房间链接
+  const bookmarkRoomLink = () => {
+    const win = window as any;
+    if (win.sidebar && win.sidebar.addPanel) {
+      // Firefox兼容
+      win.sidebar.addPanel(roomNameInput, roomLink, '');
+    } else if (win.external && win.external.AddFavorite) {
+      // IE兼容
+      win.external.AddFavorite(roomLink, roomNameInput);
+    } else {
+      // 其他浏览器
+      try {
+        const bookmark = {
+          title: roomNameInput,
+          url: roomLink
+        };
+        // 现代浏览器通常不支持编程方式添加书签
+        setToastMessage({ message: t('room.link.bookmarkHint'), type: 'success' });
+        setTimeout(() => setToastMessage(null), 3000);
+      } catch (err) {
+        console.error('添加书签失败:', err);
+        setToastMessage({ message: t('room.link.bookmarkError'), type: 'error' });
+        setTimeout(() => setToastMessage(null), 3000);
+      }
+    }
+  };
+  
+  // 在新页面打开房间链接
+  const openRoomInNewTab = () => {
+    window.open(roomLink, '_blank');
+  };
+  
   // 删除消息
   const deleteMessage = (messageIndex: number) => {
     const messageToDelete = messagesRef.current[messageIndex];
@@ -945,6 +1053,15 @@ const App: React.FC = () => {
       <header className="main-header">
         <div className="header-left">
           <h1 className="app-title">{getRoomName()}</h1>
+          {currentRoom.id === 1 && (
+            <button 
+              className="create-room-button"
+              onClick={() => setShowCreateRoomDialog(true)}
+              title={t('room.create.title')}
+            >
+              {t('room.create.button')}
+            </button>
+          )}
           <div className="user-count-button">
             <button
               className="icon-button"
@@ -1235,6 +1352,95 @@ const App: React.FC = () => {
                 onClick={() => setShowConfirmDialog(prev => ({ ...prev, show: false }))}
               >
                 {t('controls.confirm.buttons.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 创建房间对话框 */}
+      {showCreateRoomDialog && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog">
+            <h3 className="confirm-dialog-title">{t('room.create.title')}</h3>
+            <div className="create-room-form">
+              <label htmlFor="room-name">{t('room.create.nameLabel')}</label>
+              <input
+                type="text"
+                id="room-name"
+                className="room-name-input"
+                value={roomNameInput}
+                onChange={(e) => setRoomNameInput(e.target.value)}
+                placeholder={t('room.create.namePlaceholder')}
+                autoFocus
+              />
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button 
+                className="confirm-button"
+                onClick={handleCreateRoom}
+              >
+                {t('room.create.confirm')}
+              </button>
+              <button 
+                className="cancel-button"
+                onClick={() => {
+                  setShowCreateRoomDialog(false);
+                  setRoomNameInput('');
+                }}
+              >
+                {t('room.create.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 房间链接对话框 */}
+      {showRoomLinkDialog && (
+        <div className="confirm-dialog-overlay">
+          <div className="confirm-dialog room-link-dialog">
+            <h3 className="confirm-dialog-title">{t('room.link.title')}</h3>
+            <div className="room-link-content">
+              <input
+                type="text"
+                className="room-link-input"
+                value={roomLink}
+                readOnly
+              />
+              <div className="room-link-buttons">
+                <button 
+                  className="link-button copy-button"
+                  onClick={copyRoomLink}
+                  title={t('room.link.copy')}
+                >
+                  {t('room.link.copy')}
+                </button>
+                <button 
+                  className="link-button bookmark-button"
+                  onClick={bookmarkRoomLink}
+                  title={t('room.link.bookmark')}
+                >
+                  {t('room.link.bookmark')}
+                </button>
+                <button 
+                  className="link-button open-button"
+                  onClick={openRoomInNewTab}
+                  title={t('room.link.openInNewTab')}
+                >
+                  {t('room.link.openInNewTab')}
+                </button>
+              </div>
+              <div className="room-link-warning">
+                {t('room.link.warning')}
+              </div>
+            </div>
+            <div className="confirm-dialog-buttons">
+              <button 
+                className="confirm-button"
+                onClick={() => setShowRoomLinkDialog(false)}
+              >
+                {t('room.link.close')}
               </button>
             </div>
           </div>

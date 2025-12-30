@@ -5,7 +5,32 @@
     "public": "Public Room",
     "private": "Private Room",
     "privateWithRoom": "Private Room: {roomName}",
-    "current": "Current Room"
+    "current": "Current Room",
+    "create": {
+      "title": "Create Private Room",
+      "button": "Create Room",
+      "nameLabel": "Room Name",
+      "namePlaceholder": "Please enter room name",
+      "confirm": "Create",
+      "cancel": "Cancel",
+      "error": {
+        "emptyName": "Room name cannot be empty",
+        "unknown": "Failed to create room, please try again",
+        "network": "Network error, please check connection"
+      }
+    },
+    "link": {
+      "title": "Room Link",
+      "copy": "Copy Link",
+      "copyError": "Failed to copy link",
+      "copied": "Link copied to clipboard",
+      "bookmark": "Bookmark Link",
+      "bookmarkError": "Failed to add bookmark",
+      "bookmarkHint": "Please add bookmark manually",
+      "openInNewTab": "Open in New Tab",
+      "close": "Close",
+      "warning": "Text data in the room will be encrypted with the key in this link. Please do not share the link with others casually."
+    }
   },
   "controls": {
     "theme": {

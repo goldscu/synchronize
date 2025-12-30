@@ -713,6 +713,30 @@
   border-bottom: none;
 }
 
+/* 创建房间按钮 */
+.create-room-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: 10px;
+  height: 32px;
+  align-self: center;
+}
+
+.create-room-button:hover {
+  background-color: #0056b3;
+}
+
+.create-room-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
 /* 确认删除对话框样式 */
 .confirm-dialog-overlay {
   position: fixed;
@@ -798,4 +822,125 @@
 .cancel-button:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.25);
+}
+
+/* 创建房间表单样式 */
+.create-room-form {
+  margin-bottom: 24px;
+}
+
+.create-room-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #282c34;
+  text-align: left;
+}
+
+.room-name-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+}
+
+.room-name-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* 房间链接对话框样式 */
+.room-link-dialog {
+  max-width: 500px;
+}
+
+.room-link-content {
+  margin-bottom: 24px;
+}
+
+.room-link-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.room-link-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.room-link-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.link-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.link-button:hover {
+  background-color: #5a6268;
+}
+
+.link-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.25);
+}
+
+.link-button.copy-button {
+  background-color: #28a745;
+}
+
+.link-button.copy-button:hover {
+  background-color: #218838;
+}
+
+.link-button.bookmark-button {
+  background-color: #17a2b8;
+}
+
+.link-button.bookmark-button:hover {
+  background-color: #138496;
+}
+
+.link-button.open-button {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.link-button.open-button:hover {
+  background-color: #e0a800;
+}
+
+.room-link-warning {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 13px;
+  color: #856404;
+  line-height: 1.5;
+  text-align: left;
 }

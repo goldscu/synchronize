@@ -5,7 +5,32 @@
     "public": "公共房间",
     "private": "私有房间",
     "privateWithRoom": "私有房间：{roomName}",
-    "current": "当前房间"
+    "current": "当前房间",
+    "create": {
+      "title": "创建私有房间",
+      "button": "创建房间",
+      "nameLabel": "房间名称",
+      "namePlaceholder": "请输入房间名称",
+      "confirm": "创建",
+      "cancel": "取消",
+      "error": {
+        "emptyName": "房间名称不能为空",
+        "unknown": "创建房间失败，请重试",
+        "network": "网络错误，请检查连接"
+      }
+    },
+    "link": {
+      "title": "房间链接",
+      "copy": "复制链接",
+      "copyError": "复制链接失败",
+      "copied": "链接已复制到剪贴板",
+      "bookmark": "收藏链接",
+      "bookmarkError": "添加书签失败",
+      "bookmarkHint": "请手动添加书签",
+      "openInNewTab": "在新页面打开",
+      "close": "关闭",
+      "warning": "房间里的文本数据会用此链接里的key加密，请不要随意把链接分享给他人。"
+    }
   },
   "controls": {
     "theme": {

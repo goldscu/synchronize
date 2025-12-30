@@ -253,6 +253,19 @@
   color: #aaa;
 }
 
+/* 创建房间按钮暗色模式样式 */
+.app.dark .create-room-button {
+  background-color: #007bff;
+}
+
+.app.dark .create-room-button:hover {
+  background-color: #0056b3;
+}
+
+.app.dark .create-room-button:focus {
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
 /* 确认删除对话框暗色模式样式 */
 .app.dark .confirm-dialog {
   background-color: #2d2d2d;
@@ -282,4 +295,38 @@
 .app.dark .cancel-button:hover {
   background-color: #666;
   color: #f0f0f0;
+}
+
+/* 创建房间表单暗色模式样式 */
+.app.dark .create-room-form label {
+  color: #f0f0f0;
+}
+
+.app.dark .room-name-input {
+  background-color: #1a1a1a;
+  border-color: #666;
+  color: #f0f0f0;
+}
+
+.app.dark .room-name-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+/* 房间链接对话框暗色模式样式 */
+.app.dark .room-link-input {
+  background-color: #1a1a1a;
+  border-color: #666;
+  color: #f0f0f0;
+}
+
+.app.dark .room-link-input:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.app.dark .room-link-warning {
+  background-color: #382b00;
+  border-color: #5a4600;
+  color: #ffc107;
 }

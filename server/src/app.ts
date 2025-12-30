@@ -4,7 +4,7 @@ import fs from 'fs';
 import multer from 'multer';
 import { createServer } from 'http';
 import { Server as WebSocketServer, WebSocket } from 'ws';
-import { initializeDatabase, saveMessage, getRoomMessages, getRoomById, deleteMessage } from './database';
+import { initializeDatabase, saveMessage, getRoomMessages, getRoomById, deleteMessage, checkRoomNameExists, createRoom } from './database';
 import { DATA_PATHS } from './constants';
 // @ts-ignore
 import { UserJoinedMessage, RoomTextMessage, RoomTextDeleteMessage, UsersUpdateMessage, RoomFileUploadMessage, RoomFileDeleteMessage, File, MESSAGE_TYPES } from '../../shared/WebSocketProtocol';
@@ -32,6 +32,9 @@ app.use((req, res, next) => {
     next();
   }
 });
+
+// 解析JSON请求体
+app.use(express.json());
 
 // 检查并创建必要的目录
 function ensureDirectoriesExist() {
@@ -680,5 +683,34 @@ app.delete('/api/file/:filename', (req: Request, res: Response) => {
       broadcastFileDeleteMessage(filename);
     });
   });
+});
+
+// 创建房间路由
+app.post('/api/room/create', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.body;
+    
+    // 参数验证
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ error: '房间名不能为空' });
+    }
+    
+    // 检查房间名是否已存在
+    const exists = await checkRoomNameExists(name);
+    if (exists) {
+      return res.status(400).json({ error: '房间名已存在' });
+    }
+    
+    // 创建房间
+    const roomId = await createRoom(name, '');
+    
+    // 获取新创建的房间信息
+    const newRoom = await getRoomById(roomId);
+    
+    res.status(201).json(newRoom);
+  } catch (error) {
+    console.error('创建房间失败:', error);
+    res.status(500).json({ error: '创建房间失败' });
+  }
 });
 
