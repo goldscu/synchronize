@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from './ThemeContext';
 import i18n from 'i18next';
 import { Room, UserJoinedMessage, RoomFilesUpdateMessage, MESSAGE_TYPES, RoomTextMessage, RoomTextDeleteMessage, RoomFileUploadMessage, RoomFileDeleteMessage } from '../../shared/WebSocketProtocol';
+import CryptoJS from 'crypto-js';
 import './App.css';
 import './App-dark.css';
 
@@ -39,7 +40,6 @@ const App: React.FC = () => {
   const [roomNameInput, setRoomNameInput] = useState<string>('');
   const [showRoomLinkDialog, setShowRoomLinkDialog] = useState<boolean>(false);
   const [roomLink, setRoomLink] = useState<string>('');
-  const [roomKey, setRoomKey] = useState<string>('');
   const wsRef = useRef<WebSocket | null>(null);
   const hasConnected = useRef(false); // 标记是否已经连接过
   const isUnmounting = useRef(false); // 标记组件是否正在卸载
@@ -80,6 +80,8 @@ const App: React.FC = () => {
   const [username, setUsername] = useState<string>('');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [userUuid, setUserUuid] = useState<string>('');
+  const [currentRoomKey, setCurrentRoomKey] = useState<string>('05c3a42ec95f36a95a6e6defaf3a0de8727f5ffcb342c9efc3b7894738f4299e');
+  const currentRoomKeyRef = useRef<string>('05c3a42ec95f36a95a6e6defaf3a0de8727f5ffcb342c9efc3b7894738f4299e');
   
   // 消息相关状态
   const [messageType, setMessageType] = useState<'text' | 'file'>(() => {
@@ -311,13 +313,52 @@ const App: React.FC = () => {
             return;
           }
           
-          // 从URL参数中获取room_id
-          const urlParams = new URLSearchParams(window.location.search);
-          const roomIdFromUrl = urlParams.get('room_id');
-          const roomId = roomIdFromUrl ? parseInt(roomIdFromUrl) : 1; // 默认使用公开房间ID为1
+          // 从URL参数中获取room_id和room_key（支持hash路由）
+          let roomId = 1; // 默认使用公开房间ID为1
+          let roomKeyFromUrl: string | null = null;
+          const hash = window.location.hash;
+          if (hash) {
+            // hash格式可能是 #/?room_id=4&room_key=... 或 #?room_id=4&room_key=...
+            const hashQueryIndex = hash.indexOf('?');
+            if (hashQueryIndex !== -1) {
+              const queryString = hash.substring(hashQueryIndex + 1);
+              const urlParams = new URLSearchParams(queryString);
+              const roomIdFromUrl = urlParams.get('room_id');
+              if (roomIdFromUrl) {
+                roomId = parseInt(roomIdFromUrl);
+              }
+              roomKeyFromUrl = urlParams.get('room_key');
+            }
+          }
+          // 如果hash中没有找到，尝试从search中获取（向后兼容）
+          if (roomId === 1 && window.location.search) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomIdFromUrl = urlParams.get('room_id');
+            if (roomIdFromUrl) {
+              roomId = parseInt(roomIdFromUrl);
+            }
+            if (!roomKeyFromUrl) {
+              roomKeyFromUrl = urlParams.get('room_key');
+            }
+          }
+          
+          // 根据roomId设置roomKey
+          let roomKeyToSet: string;
+          if (roomId === 1) {
+            // 使用默认的roomKey
+            roomKeyToSet = '05c3a42ec95f36a95a6e6defaf3a0de8727f5ffcb342c9efc3b7894738f4299e';
+          } else if (roomKeyFromUrl) {
+            // 使用从URL获取的roomKey
+            roomKeyToSet = roomKeyFromUrl;
+          } else {
+            // 如果没有获取到roomKey，使用默认值
+            roomKeyToSet = '05c3a42ec95f36a95a6e6defaf3a0de8727f5ffcb342c9efc3b7894738f4299e';
+          }
+          setCurrentRoomKey(roomKeyToSet);
+          currentRoomKeyRef.current = roomKeyToSet;
           
           console.log('准备发送用户信息 - 用户名:', currentUsername, 'UUID:', currentUserUuid, '房间ID:', roomId);
-          
+
           // 发送用户加入消息
           const userJoinedMessage: UserJoinedMessage = {
             type: MESSAGE_TYPES.USER_JOINED,
@@ -345,10 +386,24 @@ const App: React.FC = () => {
                 break;
               case MESSAGE_TYPES.ROOM_TEXT_MESSAGE:
                 // 处理单个新文本消息
+                // 解密消息内容
+                let decryptedContent = message.room_text.content;
+                try {
+                  const bytes = CryptoJS.AES.decrypt(message.room_text.content, currentRoomKeyRef.current);
+                  decryptedContent = bytes.toString(CryptoJS.enc.Utf8);
+                  // 如果解密失败，decryptedContent 可能为空，使用原始内容
+                  if (!decryptedContent) {
+                    decryptedContent = message.room_text.content;
+                  }
+                } catch (error) {
+                  console.error('解密消息失败:', error);
+                  // 解密失败时使用原始内容
+                  decryptedContent = message.room_text.content;
+                }
                 addMessage({
                   id: message.room_text.id,
                   user_name: message.room_text.user_name,
-                  content: message.room_text.content,
+                  content: decryptedContent,
                   timestamp: message.room_text.timestamp
                 });
                 break;
@@ -356,10 +411,24 @@ const App: React.FC = () => {
                   // 清空现有消息，然后添加新收到的room_texts
                   clearMessages();
                   message.room_texts.forEach((text: { id?: number, user_name: string, content: string, timestamp: string }) => {
+                    // 解密消息内容
+                    let decryptedContent = text.content;
+                    try {
+                      const bytes = CryptoJS.AES.decrypt(text.content, currentRoomKeyRef.current);
+                      decryptedContent = bytes.toString(CryptoJS.enc.Utf8);
+                      // 如果解密失败，decryptedContent 可能为空，使用原始内容
+                      if (!decryptedContent) {
+                        decryptedContent = text.content;
+                      }
+                    } catch (error) {
+                      console.error('解密消息失败:', error);
+                      // 解密失败时使用原始内容
+                      decryptedContent = text.content;
+                    }
                     addMessage({
                       id: text.id,
                       user_name: text.user_name,
-                      content: text.content,
+                      content: decryptedContent,
                       timestamp: text.timestamp
                     });
                   });
@@ -609,11 +678,10 @@ const App: React.FC = () => {
       
       // 生成房间链接
       const baseUrl = window.location.origin;
-      const newUrl = `${baseUrl}/#/?room_id=${room.id}&key=${key}`;
+      const newUrl = `${baseUrl}/#/?room_id=${room.id}&room_key=${key}`;
       
       // 保存链接和密钥
       setRoomLink(newUrl);
-      setRoomKey(key);
       
       // 关闭创建房间对话框，打开链接对话框
       setShowCreateRoomDialog(false);
@@ -639,33 +707,6 @@ const App: React.FC = () => {
         setToastMessage({ message: t('room.link.copyError'), type: 'error' });
         setTimeout(() => setToastMessage(null), 3000);
       });
-  };
-  
-  // 收藏房间链接
-  const bookmarkRoomLink = () => {
-    const win = window as any;
-    if (win.sidebar && win.sidebar.addPanel) {
-      // Firefox兼容
-      win.sidebar.addPanel(roomNameInput, roomLink, '');
-    } else if (win.external && win.external.AddFavorite) {
-      // IE兼容
-      win.external.AddFavorite(roomLink, roomNameInput);
-    } else {
-      // 其他浏览器
-      try {
-        const bookmark = {
-          title: roomNameInput,
-          url: roomLink
-        };
-        // 现代浏览器通常不支持编程方式添加书签
-        setToastMessage({ message: t('room.link.bookmarkHint'), type: 'success' });
-        setTimeout(() => setToastMessage(null), 3000);
-      } catch (err) {
-        console.error('添加书签失败:', err);
-        setToastMessage({ message: t('room.link.bookmarkError'), type: 'error' });
-        setTimeout(() => setToastMessage(null), 3000);
-      }
-    }
   };
   
   // 在新页面打开房间链接
@@ -888,13 +929,17 @@ const App: React.FC = () => {
     }
     
     // 所有条件满足，发送消息
+    // 使用roomKey加密消息内容
+    const plainText = textInput.trim();
+    const encryptedContent = CryptoJS.AES.encrypt(plainText, currentRoomKey).toString();
+    
     const message: RoomTextMessage = {
       type: MESSAGE_TYPES.ROOM_TEXT_MESSAGE,
       room_text: {
         user_name: username,
         user_uuid: userUuid,
         room_id: currentRoom.id,
-        content: textInput.trim()
+        content: encryptedContent
       }
     };
     
@@ -1402,12 +1447,21 @@ const App: React.FC = () => {
           <div className="confirm-dialog room-link-dialog">
             <h3 className="confirm-dialog-title">{t('room.link.title')}</h3>
             <div className="room-link-content">
-              <input
-                type="text"
+              <textarea
                 className="room-link-input"
                 value={roomLink}
                 readOnly
+                rows={3}
               />
+              <div className="room-link-warning">
+                {(() => {
+                  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+                  const shortcut = isMac ? 'Cmd+D (Mac)' : 'Ctrl+D (Windows)';
+                  return t('room.link.warning', { shortcut });
+                })()}
+              </div>
+            </div>
+            <div className="room-link-dialog-buttons">
               <div className="room-link-buttons">
                 <button 
                   className="link-button copy-button"
@@ -1417,13 +1471,6 @@ const App: React.FC = () => {
                   {t('room.link.copy')}
                 </button>
                 <button 
-                  className="link-button bookmark-button"
-                  onClick={bookmarkRoomLink}
-                  title={t('room.link.bookmark')}
-                >
-                  {t('room.link.bookmark')}
-                </button>
-                <button 
                   className="link-button open-button"
                   onClick={openRoomInNewTab}
                   title={t('room.link.openInNewTab')}
@@ -1431,11 +1478,6 @@ const App: React.FC = () => {
                   {t('room.link.openInNewTab')}
                 </button>
               </div>
-              <div className="room-link-warning">
-                {t('room.link.warning')}
-              </div>
-            </div>
-            <div className="confirm-dialog-buttons">
               <button 
                 className="confirm-button"
                 onClick={() => setShowRoomLinkDialog(false)}

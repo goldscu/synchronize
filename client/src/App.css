@@ -860,7 +860,7 @@
 }
 
 .room-link-content {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .room-link-input {
@@ -874,6 +874,12 @@
   background-color: #f8f9fa;
   cursor: pointer;
   transition: border-color 0.2s ease;
+  resize: vertical;
+  min-height: 40px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-family: inherit;
 }
 
 .room-link-input:focus {
@@ -882,10 +888,16 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
+.room-link-dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
 .room-link-buttons {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
@@ -943,4 +955,5 @@
   color: #856404;
   line-height: 1.5;
   text-align: left;
+  margin-top: 12px;
 }

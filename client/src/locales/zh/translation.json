@@ -4,7 +4,7 @@
     "name": "房间",
     "public": "公共房间",
     "private": "私有房间",
-    "privateWithRoom": "私有房间：{roomName}",
+    "privateWithRoom": "私有房间：{{roomName}}",
     "current": "当前房间",
     "create": {
       "title": "创建私有房间",
@@ -26,10 +26,11 @@
       "copied": "链接已复制到剪贴板",
       "bookmark": "收藏链接",
       "bookmarkError": "添加书签失败",
-      "bookmarkHint": "请手动添加书签",
+      "bookmarkHint": "链接已复制，请按 {{shortcut}} 添加书签",
+      "bookmarkCopied": "链接已复制到剪贴板，请按 {{shortcut}} 添加书签",
       "openInNewTab": "在新页面打开",
       "close": "关闭",
-      "warning": "房间里的文本数据会用此链接里的key加密，请不要随意把链接分享给他人。"
+      "warning": "房间里的文本数据会用此链接里的key加解密，出错后文字内容会乱显示，请不要随意把链接分享给他人。打开链接后，按 {{shortcut}} 键可收藏网址。"
     }
   },
   "controls": {
@@ -61,8 +62,8 @@
       "connecting": "连接中",
       "reconnect": "重新连接",
       "connectionFailed": "连接失败",
-      "connectionError": "连接错误：{error}",
-      "unexpectedClose": "连接意外关闭 (代码: {code})"
+      "connectionError": "连接错误：{{error}}",
+      "unexpectedClose": "连接意外关闭 (代码: {{code}})"
     }
   },
   "user": {
@@ -148,13 +149,6 @@
     "deleteSuccess": "文件删除成功: {{fileName}}",
     "deleteError": "文件删除失败: {{error}}",
     "maxFileSize": "最大文件大小: {{maxSize}}",
-    "dropFileHere": "将文件拖放到此处",
-    "deleteError": {
-      "fileNotFound": "文件不存在",
-      "missingId": "文件ID缺失",
-      "connectionError": "连接错误，请检查网络连接",
-      "permissionDenied": "没有删除权限",
-      "serverError": "服务器错误，请稍后重试"
-    }
+    "dropFileHere": "将文件拖放到此处"
   }
 }
