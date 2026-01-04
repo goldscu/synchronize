@@ -1,7 +1,7 @@
 import path from 'path';
 
 // 基础数据目录路径常量
-export const DATA_BASE_PATH = path.join(__dirname, '../../data');
+export const DATA_BASE_PATH = path.join(__dirname, '../data');
 
 // 数据目录路径常量（基于DATA_BASE_PATH）
 export const DATA_PATHS = {
