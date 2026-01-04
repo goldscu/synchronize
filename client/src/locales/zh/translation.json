@@ -24,10 +24,6 @@
       "copy": "复制链接",
       "copyError": "复制链接失败",
       "copied": "链接已复制到剪贴板",
-      "bookmark": "收藏链接",
-      "bookmarkError": "添加书签失败",
-      "bookmarkHint": "链接已复制，请按 {{shortcut}} 添加书签",
-      "bookmarkCopied": "链接已复制到剪贴板，请按 {{shortcut}} 添加书签",
       "openInNewTab": "在新页面打开",
       "close": "关闭",
       "warning": "房间里的文本数据会用此链接里的key加解密，出错后文字内容会乱显示，请不要随意把链接分享给他人。打开链接后，按 {{shortcut}} 键可收藏网址。"

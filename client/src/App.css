@@ -929,14 +929,6 @@
   background-color: #218838;
 }
 
-.link-button.bookmark-button {
-  background-color: #17a2b8;
-}
-
-.link-button.bookmark-button:hover {
-  background-color: #138496;
-}
-
 .link-button.open-button {
   background-color: #ffc107;
   color: #212529;

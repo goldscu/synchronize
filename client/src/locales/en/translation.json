@@ -24,10 +24,6 @@
       "copy": "Copy Link",
       "copyError": "Failed to copy link",
       "copied": "Link copied to clipboard",
-      "bookmark": "Bookmark Link",
-      "bookmarkError": "Failed to add bookmark",
-      "bookmarkHint": "Link copied, please press {{shortcut}} to bookmark",
-      "bookmarkCopied": "Link copied to clipboard, please press {{shortcut}} to bookmark",
       "openInNewTab": "Open in New Tab",
       "close": "Close",
       "warning": "Text data in the room will be encrypted and decrypted with the key in this link. If an error occurs, the text content will be displayed incorrectly. Please do not share the link with others casually. After opening the link, press {{shortcut}} to bookmark the URL."
