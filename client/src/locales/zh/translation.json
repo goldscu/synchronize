@@ -128,7 +128,7 @@
       "closing": "连接正在关闭，请稍后再试",
       "closed": "连接已关闭，请重新连接",
       "unknown": "未知连接状态",
-      "notOpen": "连接未就绪（{status}）"
+      "notOpen": "连接未就绪（{{status}}）"
     }
   },
   "file": {

@@ -128,7 +128,7 @@
       "closing": "Connection is closing, please try again later",
       "closed": "Connection closed, please reconnect",
       "unknown": "Unknown connection status",
-      "notOpen": "Connection not ready ({status})"
+      "notOpen": "Connection not ready ({{status}})"
     }
   },
   "file": {

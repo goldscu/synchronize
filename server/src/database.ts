@@ -1,6 +1,5 @@
 import * as sqlite3 from 'sqlite3';
 import { DATA_PATHS } from './constants';
-// @ts-ignore
 import { MESSAGE_TYPES, RoomTextMessage, RoomTextsUpdateMessage } from '../../shared/WebSocketProtocol';
 
 // 数据库文件路径

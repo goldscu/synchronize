@@ -273,9 +273,9 @@ const App: React.FC = () => {
         let websocketUrl;
         if (config.client.useCurrentHost) {
           // 获取当前页面的协议、主机和端口
-          const currentHost = window.location.host;
+          const currentHost = window.location.hostname;
           const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-          websocketUrl = `${protocol}//${currentHost}${(config.websocket && config.websocket.path) || '/'}`;
+          websocketUrl = `${protocol}//${currentHost}:${config.server.port}${(config.websocket && config.websocket.path) || '/'}`;
         } else {
           // 使用配置中的完整URL（备用方案）
           websocketUrl = config.client.websocketUrl;
@@ -516,8 +516,10 @@ const App: React.FC = () => {
         };
       })
       .catch(error => {
-        console.error('读取配置文件失败:', error);
+        console.error('连接失败:', error);
         setConnectionStatus('disconnected');
+        setToastMessage({message: t('controls.connection.connectionError', { error: error.message }), type: 'error'});
+        setTimeout(() => setToastMessage(null), 5000);
       });
   };
   

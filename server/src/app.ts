@@ -6,7 +6,6 @@ import { createServer } from 'http';
 import { Server as WebSocketServer, WebSocket } from 'ws';
 import { initializeDatabase, saveMessage, getRoomMessages, getRoomById, deleteMessage, checkRoomNameExists, createRoom } from './database';
 import { DATA_PATHS } from './constants';
-// @ts-ignore
 import { UserJoinedMessage, RoomTextMessage, RoomTextDeleteMessage, UsersUpdateMessage, RoomFileUploadMessage, RoomFileDeleteMessage, File, MESSAGE_TYPES } from '../../shared/WebSocketProtocol';
 
 // 用户管理
