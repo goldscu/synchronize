@@ -13,6 +13,9 @@ This is a real-time data synchronization application built with modern web techn
 - Multi-language support
 - File upload functionality
 
+## Demo
+Project demo website: https://clip.goldscu3.serv00.net
+
 ## Technology Stack
 
 ### Frontend
@@ -161,6 +164,9 @@ ISC
 - 响应式设计，支持深色模式
 - 多语言支持
 - 文件上传功能
+
+## 演示
+项目演示网站：https://clip.goldscu3.serv00.net
 
 ## 技术栈
 
