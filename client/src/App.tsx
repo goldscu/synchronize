@@ -511,7 +511,7 @@ const App: React.FC = () => {
             // 延迟重新连接，避免过快重连
             setTimeout(() => {
               connectWebSocket();
-            }, 1000);
+            }, 30000);
           }
         };
       })
@@ -519,7 +519,7 @@ const App: React.FC = () => {
         console.error('连接失败:', error);
         setConnectionStatus('disconnected');
         setToastMessage({message: t('controls.connection.connectionError', { error: error.message }), type: 'error'});
-        setTimeout(() => setToastMessage(null), 5000);
+        setTimeout(() => setToastMessage(null), 30000);
       });
   };
   

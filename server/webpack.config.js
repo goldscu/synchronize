@@ -33,7 +33,6 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: './public', to: './public' },
-        { from: '../shared/config.json', to: './public/config.json' },
         { from: './package.json', to: './package.json' }
       ]
     })

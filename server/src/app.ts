@@ -63,7 +63,7 @@ try {
 } catch (error) {
   try {
     // 尝试从生产环境路径读取配置文件
-    configPath = path.join(__dirname, '../public/config.json');
+    configPath = path.join(__dirname, './public/config.json');
     config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   } catch (err) {
     // 如果都失败，使用默认配置
