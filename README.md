@@ -146,7 +146,7 @@ node app.js
 The application uses a custom WebSocket protocol defined in `shared/WebSocketProtocol.ts`. This ensures consistent communication between the client and server.
 
 ## License
-ISC
+AGPL-3.0
 
 ---
 
@@ -298,4 +298,4 @@ node app.js
 应用程序使用在`shared/WebSocketProtocol.ts`中定义的自定义WebSocket协议，确保客户端和服务器之间的通信一致。
 
 ## 许可证
-ISC
+AGPL-3.0
