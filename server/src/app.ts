@@ -444,7 +444,7 @@ app.get('/', (req: Request, res: Response) => {
 
 // 文件下载路由（支持断点续传）
 app.get('/api/download/:filename', (req: Request, res: Response) => {
-  const filename = req.params.filename;
+  const filename = req.params.filename as string;
   const filePath = path.join(DATA_PATHS.FILE_DIR, filename);
   
   // 检查文件是否存在
@@ -520,7 +520,7 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     // 使用URL参数中的文件名，而不是原始文件名
-    const filename = req.params.filename;
+    const filename = req.params.filename as string;
     cb(null, filename);
   }
 });
@@ -530,7 +530,7 @@ const upload = multer({ storage });
 
 // 文件上传路由（支持断点续传）
 app.post('/api/upload/:filename', upload.single('file'), (req: Request, res: Response) => {
-  const filename = req.params.filename;
+  const filename = req.params.filename as string;
   const filePath = path.join(DATA_PATHS.FILE_DIR, filename);
   const contentRange = req.headers['content-range'];
   
@@ -646,7 +646,7 @@ app.post('/api/upload/:filename', upload.single('file'), (req: Request, res: Res
 
 // 获取文件上传状态路由
 app.head('/api/upload/:filename', (req: Request, res: Response) => {
-  const filename = req.params.filename;
+  const filename = req.params.filename as string;
   const filePath = path.join(DATA_PATHS.FILE_DIR, filename);
   
   fs.access(filePath, fs.constants.F_OK, (err) => {
@@ -673,7 +673,7 @@ app.head('/api/upload/:filename', (req: Request, res: Response) => {
 
 // 删除文件路由
 app.delete('/api/file/:filename', (req: Request, res: Response) => {
-  const filename = req.params.filename;
+  const filename = req.params.filename as string;
   const filePath = path.join(DATA_PATHS.FILE_DIR, filename);
   
   // 检查文件是否存在
